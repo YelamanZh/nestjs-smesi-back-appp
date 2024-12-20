@@ -1,0 +1,15 @@
+POST http://localhost:3000/auth/sign-in
+Content-Type: application/json
+
+{
+    "email": "over100500y0urlord1@gmail.com",
+    "password": "newRegUser!#10"
+}
+
+POST http://localhost:3000/auth/sign-in
+Content-Type: application/json
+
+{
+    "email": "over100500y0urlord2@gmail.com",
+    "password": "newRegUser!#10"
+}

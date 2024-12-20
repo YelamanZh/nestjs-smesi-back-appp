@@ -1,0 +1,13 @@
+POST http://localhost:3000/catalog/products
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIwLCJlbWFpbCI6Im92ZXIxMDA1MDB5MHVybG9yZDFAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0NjQ5NzM5LCJleHAiOjE3MzQ2NTMzMzksImF1ZCI6ImxvY2FsaG9zdDozMDAwIiwiaXNzIjoibG9jYWxob3N0OjMwMDAifQ.f9UEj25OTYkseu5m7s_4TVfHJMtDM_9pPcLtpv7uJYs
+
+{
+  "name": "Декоративная штукатурка c нанесением «Мюнхенка» AlinEX «MUNFORТ F3.5»; 25 кг",
+  "description": "Тонкослойная декоративная штукатурка AlinEX MUNFORT предназначена для отделки стен при нанесении на цементные, цементно-известковые и бетонные основания. Для внутренних и наружных работ.Около 2,5-3 кг на 1 кв.м",
+  "imageUrl": "https://alinex.kz/upload/resize_cache/iblock/e34/490_490_1/id04thzqz5zro1s7sxucv03ewipk1mmi.png",
+  "price": 799.99,
+  "specifications": "Цвет - белый, водостойкий, крупность - 3,5 мм, вес 25 кг",
+  "status": "новинка",
+  "categoryId": 1
+}

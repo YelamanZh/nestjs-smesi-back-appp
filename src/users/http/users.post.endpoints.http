@@ -1,0 +1,30 @@
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "firstName": "Yelaman",
+    "lastName": "Zhumabek",
+    "email": "zhumabek.ye@edu.ektu.kz",
+    "password": "newAdminUser#1",
+    "role": "admin"
+}
+
+POST http://localhost:3000/users/create-many
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoia2Vuemhhd2ViQGdtYWlsLmNvbSIsImlhdCI6MTczNDM4MTA1MiwiZXhwIjoxNzM0Mzg0NjUyLCJhdWQiOiJsb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImxvY2FsaG9zdDozMDAwIn0.dNDOQLV3HgbRAtkzbwT3TkdXxU6WK7K8eUjN6t5aS2g
+{
+"users": [
+    {
+      "firstName": "Markaka",
+      "lastName": "Doebich",
+      "email": "markkaka@doe.com",
+      "password": "Password123#"
+    },
+    {
+      "firstName": "TomBoe",
+      "lastName": "DoeBoe",
+      "email": "tomboe@doe.com",
+      "password": "Password123#"
+    }
+  ]
+}

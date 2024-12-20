@@ -1,0 +1,23 @@
+POST http://localhost:3000/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJlbWFpbCI6Im92ZXIxMDA1MDB5MHVybG9yZDJAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzQ2NjEzODcsImV4cCI6MTczNDY2NDk4NywiYXVkIjoibG9jYWxob3N0OjMwMDAiLCJpc3MiOiJsb2NhbGhvc3Q6MzAwMCJ9.U9iMuelJUVhR0EdrmIXx7kC3Oi86DuQu9VMv_MeRS1c
+
+{
+    "title": "Whats new",
+    "postType": "post",
+    "slug": "new-with-nestjs-4",
+    "status": "draft",
+    "content": "test content",
+    "schema": "{\r\n \"@context\": \"https:\/\/schema.org\",\r\n \"@type\": \"Person\"\r\n }",
+    "featuredImageUrls": [
+        "http://localhost.com/images/image1.jpg",
+        "http://localhost.com/images/image2.jpg",
+        "http://localhost.com/images/image3.jpg"
+    ],
+    "publishOn": "2024-03-16T07:46:32+0000",
+    //"tags": ["nestjs", "typescript"],
+    "metaOptions" : {
+        "metaValue": "{ \"sidebarEnabled\": true, \"footerActive\": true }"
+    },
+    "tags": [1, 2]
+}

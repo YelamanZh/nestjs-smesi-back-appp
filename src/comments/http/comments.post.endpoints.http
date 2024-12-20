@@ -1,0 +1,17 @@
+POST http://localhost:3000/comments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIwLCJlbWFpbCI6Im92ZXIxMDA1MDB5MHVybG9yZDFAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0NjUxMjI4LCJleHAiOjE3MzQ2NTQ4MjgsImF1ZCI6ImxvY2FsaG9zdDozMDAwIiwiaXNzIjoibG9jYWxob3N0OjMwMDAifQ.pZz1Ltc3t6satKhIyPPBhy-5RImJ0a4X0Ow3bitV6NE
+Content-Type: application/json
+
+{
+  "content": "Классное качество",
+  "productId": 1
+}
+
+POST http://localhost:3000/comments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIxLCJlbWFpbCI6Im92ZXIxMDA1MDB5MHVybG9yZDJAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzQ2NTI0MzIsImV4cCI6MTczNDY1NjAzMiwiYXVkIjoibG9jYWxob3N0OjMwMDAiLCJpc3MiOiJsb2NhbGhvc3Q6MzAwMCJ9.9hSqXLRr-qrEZHNkAoJ4OTGKpUK0DP9mmTdujZO7p-I
+Content-Type: application/json
+
+{
+  "content": "Отличная новость!!!",
+  "postId": 1
+}
