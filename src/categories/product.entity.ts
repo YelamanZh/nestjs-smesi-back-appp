@@ -58,7 +58,6 @@ export class Product {
   updatedAt: Date;
 
   @ManyToOne(() => Category, (category) => category.products, {
-    cascade: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'category_id' })

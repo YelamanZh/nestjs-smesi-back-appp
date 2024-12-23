@@ -4,19 +4,27 @@ import { Repository } from 'typeorm';
 import { Product } from 'src/categories/product.entity';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { Multer } from 'multer';
+import * as AWS from 'aws-sdk';
+
 
 @Injectable()
 export class ProductsService {
+  private s3: AWS.S3;
+
   constructor(
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
-  ) {}
+  ) {
+    this.s3 = new AWS.S3({
+      region: process.env.AWS_REGION,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
+  }
 
   async findAll(): Promise<Product[]> {
-    return this.productsRepository.find({
-      relations: ['category', 'comments'],
-    });
+    return this.productsRepository.find({ relations: ['category', 'comments'] });
   }
 
   async uploadImage(id: number, file: Express.Multer.File): Promise<Product> {
@@ -25,38 +33,32 @@ export class ProductsService {
       throw new NotFoundException('Продукт не найден');
     }
 
-    const s3 = new S3Client({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
-
+    const bucketName = process.env.AWS_PUBLIC_BUCKET_NAME;
     const key = `products/${id}/${file.originalname}`;
 
-    const command = new PutObjectCommand({
-      Bucket: process.env.AWS_PUBLIC_BUCKET_NAME,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
+    try {
+      await this.s3
+        .upload({
+          Bucket: bucketName!,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        })
+        .promise();
 
-    await s3.send(command);
-
-    product.imageUrl = `https://${process.env.AWS_PUBLIC_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    return this.productsRepository.save(product);
+      product.imageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+      return this.productsRepository.save(product);
+    } catch (error) {
+      throw new Error(`Ошибка загрузки файла: ${error.message}`);
+    }
   }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const product = this.productsRepository.create(createProductDto);
-    return await this.productsRepository.save(product); // Убедитесь, что возвращается объект Product
+    return await this.productsRepository.save(product);
   }
 
-  async update(
-    id: number,
-    updateProductDto: UpdateProductDto,
-  ): Promise<Product> {
+  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.productsRepository.findOne({ where: { id } });
     if (!product) {
       throw new NotFoundException('Продукт не найден');

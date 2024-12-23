@@ -1,21 +1,18 @@
-import * as path from 'path';
+import * as AWS from 'aws-sdk';
 import { Injectable, RequestTimeoutException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UploadToAwsProvider {
-  private s3Client: S3Client;
+  private s3: AWS.S3;
 
   constructor(private readonly configService: ConfigService) {
-    // Инициализация клиента S3
-    this.s3Client = new S3Client({
+    this.s3 = new AWS.S3({
       region: this.configService.get<string>('AWS_REGION'),
-      credentials: {
-        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID')!,
-        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY')!,
-      },
+      accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
     });
   }
 
@@ -24,18 +21,18 @@ export class UploadToAwsProvider {
     const key = this.generateFileName(file);
 
     try {
-      const command = new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      });
+      await this.s3
+        .upload({
+          Bucket: bucketName!,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        })
+        .promise();
 
-      await this.s3Client.send(command);
-
-      return key; // Возвращаем имя файла в S3
+      return key;
     } catch (error) {
-      throw new RequestTimeoutException('Failed to upload file to S3', {
+      throw new RequestTimeoutException('Ошибка загрузки файла на S3', {
         cause: error,
       });
     }
