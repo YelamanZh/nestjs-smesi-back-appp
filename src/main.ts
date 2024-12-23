@@ -2,9 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { DataResponseInterceptor } from './common/interceptors/data-response/data-response.interceptor';
-import { config} from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
+import { S3Client } from '@aws-sdk/client-s3';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,20 +36,14 @@ async function bootstrap() {
 
   //setup the aws sdk used uploading the files to aws s3 bucket
   const configService = app.get(ConfigService);
-  config.update({
-    credentials: {
-      accessKeyId: configService.get(
-        'appConfig.awsAccessKeyId',
-      ),
-      secretAccessKey: configService.get(
-        'appConfig.awsSecretAccessKey',
-      ),
-    },
+
+  const s3Client = new S3Client({
     region: configService.get('appConfig.awsRegion'),
+    credentials: {
+      accessKeyId: configService.get('appConfig.awsAccessKeyId'),
+      secretAccessKey: configService.get('appConfig.awsSecretAccessKey'),
+    },
   });
 
-  //enable cors
-  app.enableCors();
-  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

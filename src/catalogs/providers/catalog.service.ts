@@ -5,7 +5,7 @@ import { Category } from 'src/categories/category.entity';
 import { Product } from 'src/categories/product.entity';
 import { CreateCategoryDto } from 'src/categories/dtos/create-category.dto';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
-import { UpdateProductDto } from 'src/categories/dtos/update-product.dto';
+import { UpdateProductDto } from 'src/products/dtos/update-product.dto';
 import { UpdateCategoryDto } from 'src/categories/dtos/update-categoty.dto';
 
 @Injectable()
@@ -59,7 +59,6 @@ export class CatalogService {
 
     const product = this.productRepository.create({
       ...productData,
-      category,
     });
 
     return this.productRepository.save(product);

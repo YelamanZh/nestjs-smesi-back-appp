@@ -2,9 +2,12 @@ POST http://localhost:3000/auth/sign-in
 Content-Type: application/json
 
 {
-    "email": "over100500y0urlord1@gmail.com",
-    "password": "newRegUser!#10"
+    "email": "zhumabek.ye@edu.ektu.kz",
+    "password": "newAdminUser#1"
 }
+
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
 
 POST http://localhost:3000/auth/sign-in
 Content-Type: application/json

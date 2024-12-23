@@ -1,15 +1,17 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, IsOptional } from 'class-validator';
 
 export class CreateCommentDto {
-  @IsNotEmpty()
   @IsString()
-  content: string;
+  @IsNotEmpty()
+  @MaxLength(500)
+  content: string; // Текст комментария
 
   @IsOptional()
-  @IsNumber()
-  productId?: number;
+  productId?: number; // ID продукта (если комментарий к продукту)
 
   @IsOptional()
-  @IsNumber()
-  postId?: number; // ID поста, к которому привязывается комментарий
+  postId?: number; // ID поста (если комментарий к посту)
+
+  @IsOptional()
+  parentCommentId?: number; // ID родительского комментария (для вложенных комментариев)
 }

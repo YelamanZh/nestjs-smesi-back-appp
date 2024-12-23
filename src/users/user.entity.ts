@@ -3,6 +3,8 @@ import { userRole } from './enums/userRole.enum';
 import { Post } from 'src/posts/post.entity';
 import { Exclude } from 'class-transformer';
 import { Comment } from 'src/comments/comment.entity';
+// src/users/user.entity.ts
+import { CartItem } from 'src/cart/cart.entity';
 
 @Entity()
 export class User {
@@ -21,7 +23,7 @@ export class User {
     length: 96,
     nullable: true,
   })
-  lastName: string;
+  lastName?: string;
 
   @Column({
     type: 'varchar',
@@ -53,9 +55,9 @@ export class User {
   })
   role: userRole;
 
-  @OneToMany(() => Post, (post) => post.author)
-  posts: Post[];
-
-  @OneToMany(() => Comment, (comment) => comment.user)
+  @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
   comments: Comment[];
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.user)
+  cartItems: CartItem[];
 }

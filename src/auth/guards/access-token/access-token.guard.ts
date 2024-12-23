@@ -25,32 +25,37 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
+    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
+    if (isPublic && !token) {
+      return true;
+    }
+
     if (!token) {
-      throw new UnauthorizedException('Token is missing');
+      throw new UnauthorizedException('Токен отсутствует.');
     }
 
     try {
       const payload = await this.jwtService.verifyAsync(
         token,
-        this.jwtConfiguration,
+        {
+          secret: this.jwtConfiguration.secret,
+          audience: this.jwtConfiguration.audience,
+          issuer: this.jwtConfiguration.issuer,
+        },
       );
       request[REQUEST_USER_KEY] = payload;
 
-      // Проверяем роли пользователя
-      const requiredRoles = this.reflector.get<userRole[]>(
-        ROLES_KEY,
-        context.getHandler(),
-      );
+      const requiredRoles = this.reflector.get<userRole[]>(ROLES_KEY, context.getHandler());
       if (requiredRoles && !requiredRoles.includes(payload.role)) {
-        throw new ForbiddenException('You do not have permission to access this resource');
+        throw new ForbiddenException('У вас нет прав для доступа к этому ресурсу.');
       }
 
       return true;
     } catch (err) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Неверный токен.');
     }
   }
 

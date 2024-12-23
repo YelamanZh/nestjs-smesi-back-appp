@@ -35,22 +35,13 @@ export class CreatePostProvider {
         try {
             //Find author from db by authorId
             author = await this.usersService.findOneById(user.sub)
-
-            //Find tags
-            tags = await this.tagsService.findMultipleTags(createPostDto.tags)
         } catch (error) {
             throw new ConflictException(error);
-        }
-
-        if (createPostDto.tags.length != tags.length) {
-            throw new BadRequestException; ('Please check ur tag Ids')
         }
 
         //create Post
         let post = this.postsRepository.create({
             ...createPostDto,
-            author: author,
-            tags: tags
         })
 
         try {

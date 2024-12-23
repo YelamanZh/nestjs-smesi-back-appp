@@ -10,8 +10,6 @@ import {
     DefaultValuePipe,
     UseInterceptors,
     ClassSerializerInterceptor,
-    UseGuards,
-    SetMetadata,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { GetUsersParamDto } from './dtos/get-users-param.dto';
@@ -19,67 +17,84 @@ import { PatchUserDto } from './dtos/patch-user.dto';
 import { UsersService } from './providers/users.service';
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateManyUsersDto } from './dtos/create-many-users.dto';
-import { AccessTokenGuard } from 'src/auth/guards/access-token/access-token.guard';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthType } from 'src/auth/enums/auth-type.enum';
 
 @Controller('users')
-@ApiTags('Users')
+@ApiTags('Пользователи')
 export class UsersController {
-
-    constructor(
-        private readonly usersService: UsersService,
-    ) { }
+    constructor(private readonly usersService: UsersService) {}
 
     @Get('/:id?')
     @ApiOperation({
-        summary: "Fetches registered useres on the application",
+        summary: 'Получить пользователей',
     })
     @ApiResponse({
         status: 200,
-        description: "Users fetched successfully based on the query"
+        description: 'Пользователи успешно получены на основе запроса',
     })
     @ApiQuery({
         name: 'limit',
         type: 'number',
         required: false,
-        description: "The number of entries returned per query",
+        description: 'Количество записей, возвращаемых за один запрос',
         example: 10,
     })
     @ApiQuery({
         name: 'page',
         type: 'number',
         required: false,
-        description: "The position of the page number that u want api to return",
+        description: 'Номер страницы, которую вы хотите получить',
         example: 1,
     })
     public getUsers(
-        @Param() getUseresParamDto: GetUsersParamDto,
+        @Param() getUsersParamDto: GetUsersParamDto,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     ) {
-        return this.usersService.findAll(getUseresParamDto, limit, page);
+        return this.usersService.findAll(getUsersParamDto, limit, page);
     }
 
     @Post()
-    //@SetMetadata('authType', 'none')
     @Auth(AuthType.None)
+    @ApiOperation({
+        summary: 'Регистрация нового пользователя',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Пользователь успешно зарегистрирован',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Ошибка валидации или другой запрос',
+    })
     @UseInterceptors(ClassSerializerInterceptor)
-    public createUsers(
-        @Body() createUserDto: CreateUserDto,
-    ) {
+    public createUsers(@Body() createUserDto: CreateUserDto) {
         return this.usersService.createUser(createUserDto);
     }
 
     @Post('create-many')
+    @ApiOperation({
+        summary: 'Создать нескольких пользователей',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Пользователи успешно созданы',
+    })
     public createManyUsers(@Body() createManyUsersDto: CreateManyUsersDto) {
         const users = createManyUsersDto.users;
         return this.usersService.createMany(users);
     }
 
-
     @Patch()
+    @ApiOperation({
+        summary: 'Обновление информации о пользователе',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Пользователь успешно обновлен',
+    })
     public patchUser(@Body() patchUserDto: PatchUserDto) {
-        return patchUserDto;
+        return this.usersService.updateUser(patchUserDto);
     }
 }

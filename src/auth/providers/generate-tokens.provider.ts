@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import jwtConfig from '../config/jwt.config';
 import { User } from 'src/users/user.entity';
 import { ActiveUserData } from '../inteface/active-user-data.interface';
+type UserMinimal = Pick<User, 'id' | 'email' | 'role'>;
 
 @Injectable()
 export class GenerateTokensProvider {
@@ -20,7 +21,11 @@ export class GenerateTokensProvider {
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
   ) {}
 
-  public async signToken<T extends Record<string, any>>(userId: number, expiresIn: number, payload?: T) {
+  public async signToken<T extends Record<string, any>>(
+    userId: number,
+    expiresIn: number,
+    payload?: T,
+  ) {
     return await this.jwtService.signAsync(
       {
         sub: userId,
@@ -35,24 +40,17 @@ export class GenerateTokensProvider {
     );
   }
 
-  public async generateTokens(user: User) {
-    const [accessToken, refreshToken] = await Promise.all([
-      //Generate The Access Token
-      this.signToken<Partial<ActiveUserData>>(
-        user.id,
-        this.jwtConfiguration.accessTokenTtl,
-        {
-          email: user.email,
-          role: user.role,
-        },
-      ),
-      //Generate the refreshToken
-      this.signToken(user.id, this.jwtConfiguration.refreshTokenttl),
-    ]);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+  public async generateTokens(user: UserMinimal): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email, role: user.role },
+      { secret: this.jwtConfiguration.secret, expiresIn: '15m' },
+    );
+  
+    const refreshToken = await this.jwtService.signAsync(
+      { sub: user.id },
+      { secret: this.jwtConfiguration.secret, expiresIn: '7d' },
+    );
+  
+    return { accessToken, refreshToken };
   }
 }

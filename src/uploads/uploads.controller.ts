@@ -1,32 +1,35 @@
 import {
   Controller,
   Post,
-  UploadedFile,
   UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiHeaders, ApiOperation } from '@nestjs/swagger';
-import { Express } from 'express';
-import { UploadsService } from './providers/uploads.service';
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
+import { UploadToAwsProvider } from './providers/upload-to-aws.provider';
 
+@ApiTags('Uploads') // Тег для Swagger
 @Controller('uploads')
-export class UploadsController {
-  constructor(
-    /**
-     * inject uploadsService
-     */
-    private readonly uploadsService: UploadsService,
-  ) {}
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiHeaders([
-    { name: 'Content-Type', description: 'multipart/form-data' },
-    { name: 'Authorization', description: 'Bearer Token' },
-  ])
-  @ApiOperation({
-    summary: `Upload a new image to the server`,
-  })
+export class UploadController {
+  constructor(private readonly uploadToAwsProvider: UploadToAwsProvider) {}
+
   @Post('file')
-  public uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadsService.uploadFile(file);
+  @ApiOperation({ summary: 'Upload a file to AWS S3' }) // Краткое описание
+  @ApiResponse({
+    status: 201,
+    description: 'File uploaded successfully',
+    schema: {
+      example: {
+        message: 'File uploaded successfully',
+        fileKey: 'example-file-12345.png',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file upload request' }) // Описание ошибки
+  @ApiConsumes('multipart/form-data') // Указываем, что принимаем файлы
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const uploadedFileKey = await this.uploadToAwsProvider.fileUpload(file);
+    return { message: 'File uploaded successfully', fileKey: uploadedFileKey };
   }
 }

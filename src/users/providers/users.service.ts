@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
   RequestTimeoutException,
 } from '@nestjs/common';
 import { GetUsersParamDto } from '../dtos/get-users-param.dto';
@@ -19,6 +20,7 @@ import { FindOneUserByEmailProvider } from './find-one-user-by-email.provider';
 import { FindOneByGoogleIdProvider } from './find-one-by-google-id.provider';
 import { CreateGoogleUserProvider } from './create-google-user.provider';
 import { GoogleUser } from '../interfaces/google-user.interface';
+import { PatchUserDto } from '../dtos/patch-user.dto';
 
 /**
  * Controller class for '/users' API endpoint
@@ -138,5 +140,17 @@ export class UsersService {
 
   public async createGoogleUser(googleUser: GoogleUser){
     return await this.createGoogleUserProvider.createGoogleUser(googleUser);
+  }
+
+  async updateUser(patchUserDto: PatchUserDto): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id: patchUserDto.id } });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    Object.assign(user, patchUserDto);
+
+    return this.usersRepository.save(user);
   }
 }

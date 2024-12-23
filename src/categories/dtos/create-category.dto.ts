@@ -4,5 +4,5 @@ export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(96)
-  name: string;
+  name: string; // Название категории
 }

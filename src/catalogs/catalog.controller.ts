@@ -7,7 +7,7 @@ import { CatalogService } from './providers/catalog.service';
 import { CreateCategoryDto } from 'src/categories/dtos/create-category.dto';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
 import { UpdateCategoryDto } from 'src/categories/dtos/update-categoty.dto';
-import { UpdateProductDto } from 'src/categories/dtos/update-product.dto';
+import { UpdateProductDto } from 'src/products/dtos/update-product.dto';
 
 @ApiTags('Catalog')
 @Controller('catalog')

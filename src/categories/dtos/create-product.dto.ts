@@ -1,51 +1,75 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsEnum } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-
-export enum ProductStatus {
-  NEW = 'новинка',
-  SALE = 'акция',
-  RECOMMENDED = 'рекомендуем',
-  HIT = 'хит',
-  NONE = 'обычный',
-}
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  IsEnum,
+  IsDecimal,
+  IsObject,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
+import { ProductStatus } from '../product.entity';
 
 export class CreateProductDto {
-  @ApiProperty({ description: 'Name of the product' })
-  @IsString()
+  @ApiProperty({ description: 'Название продукта', example: 'Цемент' })
   @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({ description: 'Description of the product' })
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  name: string; // Название продукта
 
-  @ApiProperty({ description: 'Price of the product' })
-  @IsNumber()
-  @IsNotEmpty()
-  price: number;
-
-  @ApiProperty({ description: 'Specifications of the product' })
-  @IsString()
+  @ApiPropertyOptional({ description: 'Ссылка на изображение', example: 'https://example.com/image.jpg' })
   @IsOptional()
-  specifications?: string;
+  @IsString()
+  imageUrl?: string; // Поле для одной фотографии
+
+  @ApiPropertyOptional({
+    description: 'Описание продукта',
+    example: 'Качественный цемент для строительства',
+  })
+  @IsString()
+  description?: string; // Описание продукта
+
+  @ApiProperty({ description: 'Есть ли в наличии', example: true })
+  @IsBoolean()
+  inStock: boolean; // В наличии или нет
 
   @ApiProperty({
-    description: 'Status of the product',
-    enum: ProductStatus,
-    default: ProductStatus.NONE,
+    description: 'Статус продукта',
+    example: 'новинка',
+    enum: ['новинка', 'акция', 'рекомендуем', 'хит', 'обычный'],
   })
   @IsEnum(ProductStatus)
-  @IsOptional()
-  status?: ProductStatus;
+  status: ProductStatus; // Статус продукта
 
-  @ApiProperty({ description: 'URL of the product image' })
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
+  @ApiProperty({ description: 'Цена продукта', example: 1500.5 })
+  @IsNumber({ allowInfinity: false, allowNaN: false }, { message: 'Цена должна быть числом' })
+  price: number; // Цена продукта
 
-  @ApiProperty({ description: 'Category ID for the product' })
-  @IsNumber()
+  @ApiProperty({
+    description: 'Характеристики продукта',
+    example: {
+      color: 'белый',
+      waterproof: true,
+      maxGrainSize: '2.5 мм',
+      mixingRatio: '1:3',
+      materialConsumption: '10 кг/м²',
+      mobilityClass: 'М100',
+      applicationTemperature: 'от +5 до +35',
+      solutionViability: '2 часа',
+      materialClass: 'Класс 1',
+      effectiveActivity: '50 Бк/кг',
+      adhesionStrength: '1.2 МПа',
+      compressiveStrength: '30 МПа',
+      strengthClass: 'М300',
+      dryingTime: '24 часа',
+      frostResistance: '50 циклов',
+    },
+  })
+  @IsObject()
+  specifications: Record<string, any>; // Характеристики продукта
+
+  @ApiProperty({ description: 'ID категории', example: 1 })
   @IsNotEmpty()
-  categoryId: number;
+  @IsNumber()
+  categoryId: number; // ID категории
 }

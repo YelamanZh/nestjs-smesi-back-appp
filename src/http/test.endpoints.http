@@ -1,0 +1,76 @@
+### Получить все посты
+GET http://localhost:3000/posts
+Accept: application/json
+
+###
+
+### Создать новый пост (только админ)
+POST http://localhost:3000/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiemh1bWFiZWsueWVAZWR1LmVrdHUua3oiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MzQ5MzY0MTUsImV4cCI6MTczNDkzNzMxNSwiYXVkIjoibG9jYWxob3N0OjMwMDAiLCJpc3MiOiJsb2NhbGhvc3Q6MzAwMCJ9.IXbTfL4y0LY5NyzKsTe1FDx09jV1kzSzm83v3SdaU74
+
+{
+  "title": "Тестовый пост",
+  "content": "Это тестовое содержание поста",
+  "images": ["https://play-lh.googleusercontent.com/qMI5vUc_ECxZdWaCiPuRWAOVlxf2H8GzmRbChPr2915xmyAYtIepSz98opcZCJTjNw", "https://cdnn21.img.ria.ru/images/07e6/0b/15/1832993769_201:130:2115:2044_1920x0_80_0_0_3b52850ecbfcd80a21b9420136cd8bf1.jpg"]
+}
+
+###
+
+### Получить все продукты
+GET http://localhost:3000/products
+Accept: application/json
+
+###
+
+### Создать продукт (только админ)
+POST http://localhost:3000/products
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiemh1bWFiZWsueWVAZWR1LmVrdHUua3oiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MzQ5MzcwMTQsImV4cCI6MTczNDkzNzkxNCwiYXVkIjoibG9jYWxob3N0OjMwMDAiLCJpc3MiOiJsb2NhbGhvc3Q6MzAwMCJ9.QHnFXdsEoF6ZS38Qvq4ds6glXE4DfSvVr01XQKuY5xA
+
+{
+  "name": "Продукт 1",
+  "description": "Описание продукта",
+  "price": 1000.9,
+  "inStock": true,
+  "status": "новинка",
+  "categoryId": 1,
+  "specifications": {
+    "color": "белый",
+    "waterproof": true
+  }
+}
+
+###
+
+### Добавить комментарий к посту (только авторизованные пользователи)
+POST http://localhost:3000/comments/post/1
+Content-Type: application/json
+Authorization: Bearer {{your_user_token}}
+
+{
+  "content": "Это тестовый комментарий"
+}
+
+###
+
+### Получить комментарии к посту
+GET http://localhost:3000/comments/post/1
+Accept: application/json
+
+###
+
+### Удалить пост (только админ)
+DELETE http://localhost:3000/posts/1
+Authorization: Bearer {{your_admin_token}}
+
+POST http://localhost:3000/products/1/upload-image
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiemh1bWFiZWsueWVAZWR1LmVrdHUua3oiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MzQ5Mzc3OTYsImV4cCI6MTczNDkzODY5NiwiYXVkIjoibG9jYWxob3N0OjMwMDAiLCJpc3MiOiJsb2NhbGhvc3Q6MzAwMCJ9.ky4t9NkQNpVzZ9dmyx2CIm9MgKIX3WzO6Ms2NbLAERY
+Content-Type: multipart/form-data; boundary=WebKitBoundary
+
+--WebKitBoundary
+Content-Disposition: form-data; name="file"; filename="image.png"
+Content-Type: image/png
+
+< ./graph.png
+--WebKitBoundary--

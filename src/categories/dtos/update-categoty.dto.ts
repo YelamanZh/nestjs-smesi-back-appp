@@ -1,13 +1,13 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsNotEmpty } from 'class-validator';
 
 export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name?: string;
+  name?: string; // Название категории
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  description?: string;
+  description?: string; // Описание категории
 }

@@ -1,31 +1,47 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+// src/auth/auth.controller.ts
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './providers/auth.service';
-import { SignInDto } from './dtos/signin.dto';
-import { Auth } from './decorators/auth.decorator';
-import { AuthType } from './enums/auth-type.enum';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
+import { AccessTokenGuard } from './guards/access-token/access-token.guard';
+import { ActiveUser } from './decorators/active-user.decorator';
+import { ActiveUserData } from './inteface/active-user-data.interface';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { SignInDto } from './dtos/signin.dto';
 
+@ApiTags('Аутентификация')
 @Controller('auth')
 export class AuthController {
-    constructor(
-        /**
-         * Injecting Auth Service
-         */
-        private readonly authService: AuthService,
-    ){}
+  constructor(private readonly authService: AuthService) {}
 
-    @Post('sign-in')
-    @HttpCode(HttpStatus.OK)
-    @Auth(AuthType.None)
-    public async signIn(@Body() signInDto: SignInDto){
-        return this.authService.signIn(signInDto)
-    }
+  @ApiOperation({ summary: 'Войти в систему (Sign-In)' })
+  @ApiResponse({ status: 200, description: 'Успешный вход' })
+  @Post('sign-in')
+  @HttpCode(HttpStatus.OK)
+  public async signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
+  }
 
-    //Refresh tokens
-    @Post('refresh-tokens')
-    @HttpCode(HttpStatus.OK)
-    @Auth(AuthType.None)
-    public async refreshTokens(@Body() refreshTokensDto: RefreshTokenDto){
-        return this.authService.refreshTokens(refreshTokensDto)
-    }
+  @ApiOperation({ summary: 'Обновить токен (Refresh Tokens)' })
+  @ApiResponse({ status: 200, description: 'Токены успешно обновлены' })
+  @Post('refresh-tokens')
+  @HttpCode(HttpStatus.OK)
+  public async refreshTokens(@Body() refreshTokensDto: RefreshTokenDto) {
+    return this.authService.refreshTokens(refreshTokensDto);
+  }
+
+  @ApiOperation({ summary: 'Выйти из системы (Logout)' })
+  @ApiResponse({ status: 200, description: 'Выход успешно выполнен' })
+  @Post('logout')
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  public logout(@ActiveUser() user: ActiveUserData) {
+    return this.authService.logout(user);
+  }
 }

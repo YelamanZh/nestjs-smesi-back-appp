@@ -1,23 +1,17 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommentsService } from './providers/comments.service';
 import { CommentsController } from './comments.controller';
+import { CommentsService } from './providers/comments.service';
 import { Comment } from './comment.entity';
-import { User } from 'src/users/user.entity';
+import { Post } from '../posts/post.entity';
+import { ProductsModule } from '../products/products.module';
 import { Product } from 'src/categories/product.entity';
-import { ProductsModule } from 'src/products/products.module';
-import { AuthModule } from 'src/auth/auth.module';
 import { PostsModule } from 'src/posts/posts.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Comment, User, Product]),
-    ProductsModule, // Import ProductsModule
-    AuthModule,
-    PostsModule
-  ],
-  providers: [CommentsService],
+  imports: [TypeOrmModule.forFeature([Comment, Post, Product]), ProductsModule, PostsModule],
   controllers: [CommentsController],
+  providers: [CommentsService],
   exports: [CommentsService],
 })
 export class CommentsModule {}
