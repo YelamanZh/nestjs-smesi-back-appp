@@ -20,11 +20,11 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
           },
         },
         defaults: {
-          from: `My Blog <no-repy@nestjs-blog.com>`,
+          from: `Строим и Месим <no-repy@nestjs-blog.com>`,
         },
         template: {
           dir: join(__dirname, 'templates'),
-          adapter: new EjsAdapter({ inlineCssEnabled: true }),
+          adapter: new EjsAdapter(),
           options: {
             strict: false,
           },

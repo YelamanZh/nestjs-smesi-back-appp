@@ -74,9 +74,15 @@ export class CreateUserProvider {
     }
 
     try {
-      this.mailService.sendUserWelcome(newUser);
+      // Prepare the user data for the email
+      this.mailService.sendUserWelcome({
+        email: newUser.email,
+        name: `${newUser.firstName} ${newUser.lastName || ''}`.trim(), // Construct the name
+      });
     } catch (error) {
-      throw new RequestTimeoutException(error);
+      throw new RequestTimeoutException('Failed to send welcome email.', {
+        description: error.message,
+      });
     }
 
     return newUser;

@@ -2,11 +2,11 @@ import { DataSource } from "typeorm";
 
 export default new DataSource({
     type: 'postgres',
-    host: '10.10.8.159',
+    host: 'locaalhost',
     port: 5432,
-    username: 'hqueue',
-    password: 'password',
-    database: 'postgres',
-    entities: ['**/*.entity.js'],
-    migrations: ['migrations/*.js'],
+    username: 'postgres',
+    password: 'WQAdkt82',
+    database: 'smesiback',
+    entities: ['src/**/*.entity.js'],
+    migrations: ['src/migrations/*.js'],
 })

@@ -4,42 +4,23 @@ import { Global, Injectable, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { join } from "path";
 
-@Global()
-@Module({
-  imports: [
-    MailerModule.forRootAsync({
-      useFactory: async (config: ConfigService) => ({
-        transport: {
-          host: config.get<string>('appConfig.mailHost'),
-          port: 587,
-          secure: false,
-          auth: {
-            user: config.get('appConfig.smtpUsername'),
-            pass: config.get('appConfig.smtpPassword'),
-          },
-        },
-        defaults: {
-          from: `My Blog <no-repy@nestjs-blog.com>`,
-        },
-        template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new EjsAdapter({ inlineCssEnabled: true }),
-          options: {
-            strict: false,
-          },
-        },
-      }),
-      inject: [ConfigService],
-    }),
-  ],
-  providers: [MailerService],
-  exports: [MailerService], // Экспорт MailService
-})
-
 @Injectable()
 export class MailService {
-  async sendUserWelcome(user: any): Promise<void> {
-    // Реализуйте логику отправки почты
-    console.log(`Отправка приветственного письма пользователю: ${user.email}`);
+  constructor(private readonly mailerService: MailerService) {}
+
+  async sendUserWelcome(user: { email: string; name: string }): Promise<void> {
+    try {
+      await this.mailerService.sendMail({
+        to: user.email, // Recipient's email
+        subject: 'Welcome to My Blog!',
+        template: './welcome', // Name of the template file (e.g., `welcome.ejs`)
+        context: {
+          name: user.name, // Variables to pass to the template
+        },
+      });
+      console.log(`Welcome email sent to ${user.email}`);
+    } catch (error) {
+      console.error(`Failed to send welcome email: ${error.message}`);
+    }
   }
 }

@@ -75,25 +75,34 @@ export class UsersService {
   /**
    * Public method responsible for handling GET request for '/users' endpoint
    */
-  public findAll(
-    getUseresParamDto: GetUsersParamDto,
-    limit: number,
-    page: number,
-  ) {
-    throw new HttpException(
-      {
-        status: HttpStatus.MOVED_PERMANENTLY,
-        error: 'The API endpoint does not exist',
-        fileName: 'users.service.ts',
-        lineNumber: 88,
-      },
-      HttpStatus.MOVED_PERMANENTLY,
-      {
-        cause: new Error(),
-        description: 'Occured because the API endpoint was permanently moved',
-      },
+  
+
+public async findAll(
+  getUseresParamDto: GetUsersParamDto,
+  limit: number,
+  page: number,
+) {
+  try {
+    // Используем findAndCount для получения данных и общего количества записей
+    const [users, total] = await this.usersRepository.findAndCount({
+      take: limit, // Количество записей на одной странице
+      skip: (page - 1) * limit, // Пропускаем записи на основе текущей страницы
+      where: getUseresParamDto, // Фильтры из DTO, если они заданы
+    });
+
+    return {
+      data: users,
+      total, // Общее количество записей
+      limit, // Лимит записей на странице
+      page,  // Текущая страница
+    };
+  } catch (error) {
+    // Обработка ошибок при выполнении запроса
+    throw new RequestTimeoutException(
+      'Unable to fetch users at the moment. Please try again later.',
     );
   }
+}
 
   /**
    * Public method used to find one user using the ID of the user

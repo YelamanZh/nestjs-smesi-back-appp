@@ -28,6 +28,7 @@ async function bootstrap() {
     .setTermsOfService('http://localhost:3000/terms-of-service')
     .setLicense('A', 'B')
     .addServer('http://localhost:3000')
+    .addServer('http://ec2-16-16-209-140.eu-north-1.compute.amazonaws.com')
     .setVersion('1.0')
     .build();
 
@@ -46,7 +47,19 @@ async function bootstrap() {
   });
 
   // Enable CORS
-  app.enableCors();
+  app.enableCors({
+  origin: (origin, callback) => {
+    const allowedOrigins = ['http://localhost:3000', 'http://ec2-16-16-209-140.eu-north-1.compute.amazonaws.com']
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  credentials: true,
+  });
+
 
   await app.listen(process.env.PORT || 3000);
 }
