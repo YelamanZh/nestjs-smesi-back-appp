@@ -12,9 +12,13 @@ import { Comment } from './comments/comment.entity';
 import { Post } from './posts/post.entity';
 import { CartItem } from './cart/cart.entity';
 import { CartModule } from './cart/cart.module';
+import { ProductsModule } from './products/products.module'; 
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
+    ProductsModule,
+    CategoriesModule,
     UsersModule,
     CommentsModule,
     CartModule,
