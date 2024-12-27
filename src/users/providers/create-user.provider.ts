@@ -81,7 +81,7 @@ export class CreateUserProvider {
       });
     } catch (error) {
       throw new RequestTimeoutException('Failed to send welcome email.', {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
 

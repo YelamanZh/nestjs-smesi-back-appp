@@ -4,10 +4,9 @@ import {
   IsString,
   IsBoolean,
   IsEnum,
-  IsDecimal,
-  IsObject,
   IsNumber,
   IsOptional,
+  IsObject,
 } from 'class-validator';
 import { ProductStatus } from '../product.entity';
 
@@ -39,30 +38,27 @@ export class CreateProductDto {
   @IsEnum(ProductStatus)
   status: ProductStatus;
 
-  @ApiProperty({ description: 'Цена продукта', example: 1500.5 })
-  @IsNotEmpty()
-  @IsNumber()
-  price: number;
-
-  @ApiProperty({
-    description: 'Характеристики продукта',
-    example: {
-      color: 'белый',
-      waterproof: true,
-      maxGrainSize: '2.5 мм',
-      mixingRatio: '1:3',
-      materialConsumption: '10 кг/м²',
-      mobilityClass: 'М100',
-      applicationTemperature: 'от +5 до +35',
-      solutionViability: '2 часа',
-      materialClass: 'Класс 1',
-      effectiveActivity: '50 Бк/кг',
-      adhesionStrength: '1.2 МПа',
-      compressiveStrength: '30 МПа',
-      strengthGrade: 'М300',
-      dryingTime: '24 часа',
-      frostResistance: '50 циклов',
+  @ApiPropertyOptional({
+    description: 'Характеристики продукта (JSON-объект)',
+    type: 'object',
+    properties: {
+      color: { type: 'string', example: 'белый' },
+      waterproof: { type: 'boolean', example: true },
+      maxGrainSize: { type: 'string', example: '2.5 мм' },
+      mixingRatio: { type: 'string', example: '1:3' },
+      materialConsumption: { type: 'string', example: '10 кг/м²' },
+      mobilityClass: { type: 'string', example: 'М100' },
+      applicationTemperature: { type: 'string', example: 'от +5 до +35' },
+      solutionViability: { type: 'string', example: '2 часа' },
+      materialClass: { type: 'string', example: 'Класс 1' },
+      effectiveActivity: { type: 'string', example: '50 Бк/кг' },
+      adhesionStrength: { type: 'string', example: '1.2 МПа' },
+      compressiveStrength: { type: 'string', example: '30 МПа' },
+      strengthGrade: { type: 'string', example: 'М300' },
+      dryingTime: { type: 'string', example: '24 часа' },
+      frostResistance: { type: 'string', example: '50 циклов' },
     },
+    additionalProperties: true,
   })
   @IsOptional()
   @IsObject()
@@ -79,5 +75,5 @@ export class CreateProductDto {
     format: 'binary',
   })
   @IsOptional()
-  file: any;
+  file?: Express.Multer.File;
 }

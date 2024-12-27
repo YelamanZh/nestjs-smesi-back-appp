@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ProductsService } from 'src/products/providers/products.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from 'src/categories/category.entity';
@@ -18,9 +19,10 @@ export class CatalogService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @Inject(forwardRef(() => ProductsService))
+    private readonly productsService: ProductsService,
   ) {
     this.s3 = new AWS.S3({
       region: process.env.AWS_REGION,
@@ -29,20 +31,23 @@ export class CatalogService {
     });
   }
 
+  // Создание категории
   async createCategory(createCategoryDto: CreateCategoryDto): Promise<Category> {
     const category = this.categoryRepository.create(createCategoryDto);
-    return await this.categoryRepository.save(category);
+    return this.categoryRepository.save(category);
   }
 
+  // Обновление категории
   async updateCategory(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryRepository.findOneBy({ id });
     if (!category) {
       throw new NotFoundException('Категория не найдена');
     }
     Object.assign(category, updateCategoryDto);
-    return await this.categoryRepository.save(category);
+    return this.categoryRepository.save(category);
   }
 
+  // Удаление категории
   async deleteCategory(id: number): Promise<void> {
     const category = await this.categoryRepository.findOneBy({ id });
     if (!category) {
@@ -51,82 +56,79 @@ export class CatalogService {
     await this.categoryRepository.remove(category);
   }
 
-async createProduct(
-  createProductDto: CreateProductDto,
-  file: Express.Multer.File,
-): Promise<Product> {
-  const { categoryId, specifications, ...productData } = createProductDto;
+  // Создание продукта
+  async createProduct(createProductDto: CreateProductDto, file: Express.Multer.File): Promise<Product> {
+    const { categoryId, specifications, ...productData } = createProductDto;
 
-  // Обработка specifications
-  let parsedSpecifications: Record<string, any> | undefined;
-  if (specifications && typeof specifications === 'string') {
-    try {
-      parsedSpecifications = JSON.parse(specifications);
-    } catch (error) {
-      throw new BadRequestException('Invalid specifications format');
-    }
-  } else if (specifications && typeof specifications === 'object') {
-    parsedSpecifications = specifications as Record<string, any>;
-  }
-
-  const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
-  if (!category) {
-    throw new NotFoundException('Category not found');
-  }
-
-  const imageUrl = await this.uploadImageToS3(file);
-
-  const product = this.productRepository.create({
-    ...productData,
-    specifications: parsedSpecifications,
-    imageUrl,
-    category,
-  });
-
-  return this.productRepository.save(product);
-}
-
-async updateProduct(
-  id: number,
-  updateProductDto: UpdateProductDto,
-  file?: Express.Multer.File,
-): Promise<Product> {
-  const { categoryId, specifications, ...productData } = updateProductDto;
-
-  const product = await this.productRepository.findOne({ where: { id } });
-  if (!product) {
-    throw new NotFoundException('Product not found');
-  }
-
-  if (categoryId) {
     const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException('Категория не найдена');
     }
-    product.category = category;
-  }
 
-  let parsedSpecifications: Record<string, any> | undefined;
-  if (specifications && typeof specifications === 'string') {
-    try {
-      parsedSpecifications = JSON.parse(specifications);
-    } catch (error) {
-      throw new BadRequestException('Invalid specifications format');
+    let parsedSpecifications: Record<string, any> | undefined;
+    if (specifications && typeof specifications === 'string') {
+      try {
+        parsedSpecifications = JSON.parse(specifications);
+      } catch (error) {
+        throw new BadRequestException('Неверный формат спецификаций');
+      }
     }
-  } else if (specifications) {
-    parsedSpecifications = specifications;
+
+    const imageUrl = await this.uploadImageToS3(file);
+
+    const product = this.productRepository.create({
+      ...productData,
+      specifications: parsedSpecifications,
+      imageUrl,
+      category,
+    });
+
+    return this.productRepository.save(product);
   }
 
-  if (file) {
-    product.imageUrl = await this.uploadImageToS3(file);
+  // Обновление продукта
+  async updateProduct(
+    id: number,
+    updateProductDto: UpdateProductDto,
+    file?: Express.Multer.File,
+  ): Promise<Product> {
+    const { categoryId, specifications, ...productData } = updateProductDto;
+
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException('Продукт не найден');
+    }
+
+    if (categoryId) {
+      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+      if (!category) {
+        throw new NotFoundException('Категория не найдена');
+      }
+      product.category = category;
+    }
+
+    let parsedSpecifications: Record<string, any> | undefined;
+    if (specifications && typeof specifications === 'string') {
+      try {
+        parsedSpecifications = JSON.parse(specifications);
+      } catch (error) {
+        throw new BadRequestException('Неверный формат спецификаций');
+      }
+    } else if (specifications) {
+      parsedSpecifications = specifications;
+    }
+
+    if (file) {
+      product.imageUrl = await this.uploadImageToS3(file);
+    }
+
+    Object.assign(product, productData);
+    product.specifications = parsedSpecifications as Record<string, unknown>;
+
+    return this.productRepository.save(product);
   }
 
-  Object.assign(product, productData);
-  product.specifications = parsedSpecifications as Record<string, unknown>;
-
-  return this.productRepository.save(product);
-}
-
+  // Удаление продукта
   async deleteProduct(id: number): Promise<void> {
     const product = await this.productRepository.findOneBy({ id });
     if (!product) {
@@ -135,28 +137,26 @@ async updateProduct(
     await this.productRepository.remove(product);
   }
 
+  // Загрузка изображения в S3
   private async uploadImageToS3(file: Express.Multer.File): Promise<string> {
     const bucketName = process.env.AWS_PUBLIC_BUCKET_NAME;
 
     if (!bucketName) {
-      throw new Error('Имя S3 bucket не указано в переменных окружения');
+      throw new Error('S3 Bucket name not defined in environment variables');
     }
 
     const key = `products/${uuidv4()}${path.extname(file.originalname)}`;
 
-    try {
-      await this.s3
-        .upload({
-          Bucket: bucketName,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-        })
-        .promise();
+    const { Location } = await this.s3
+      .upload({
+        Bucket: bucketName,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ACL: 'public-read',
+      })
+      .promise();
 
-      return `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    } catch (error) {
-      throw new Error(`Ошибка загрузки файла: ${error.message}`);
-    }
+    return Location;
   }
 }

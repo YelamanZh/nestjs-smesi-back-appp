@@ -8,6 +8,7 @@ import * as AWS from 'aws-sdk';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Apply global validation pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,11 +25,13 @@ async function bootstrap() {
    */
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Стройка и материалы')
-    .setDescription('Use the basic API URL as http://localhost:3000')
-    .setTermsOfService('http://localhost:3000/terms-of-service')
-    .setLicense('A', 'B')
+    .setDescription('API documentation for Стройка и материалы')
+    .setTermsOfService(
+      'http://ec2-13-51-241-139.eu-north-1.compute.amazonaws.com:3000/terms-of-service',
+    )
+    .setLicense('License', 'https://example.com/license')
     .addServer('http://localhost:3000')
-    .addServer('http://ec2-16-16-209-140.eu-north-1.compute.amazonaws.com')
+    .addServer('http://ec2-13-51-241-139.eu-north-1.compute.amazonaws.com:3000')
     .setVersion('1.0')
     .build();
 
@@ -36,7 +39,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   /**
-   * Setup AWS SDK for uploading files
+   * Configure AWS SDK
    */
   const configService = app.get(ConfigService);
 
@@ -46,22 +49,31 @@ async function bootstrap() {
     secretAccessKey: configService.get<string>('appConfig.awsSecretAccessKey'),
   });
 
-  // Enable CORS
+  /**
+   * CORS configuration
+   */
   app.enableCors({
-  origin: (origin, callback) => {
-    const allowedOrigins = ['http://localhost:3000', 'http://ec2-16-16-209-140.eu-north-1.compute.amazonaws.com']
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  credentials: true,
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://ec2-13-51-241-139.eu-north-1.compute.amazonaws.com:3000',
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error(`Blocked by CORS: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
   });
 
-
-  await app.listen(process.env.PORT || 3000);
+  // Start the application
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

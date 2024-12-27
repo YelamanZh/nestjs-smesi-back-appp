@@ -44,28 +44,31 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   price?: number;
 
   @ApiPropertyOptional({
-    description: 'Характеристики продукта',
-    example: {
-      color: 'белый',
-      waterproof: true,
-      maxGrainSize: '2.5 мм',
-      mixingRatio: '1:3',
-      materialConsumption: '10 кг/м²',
-      mobilityClass: 'М100',
-      applicationTemperature: 'от +5 до +35',
-      solutionViability: '2 часа',
-      materialClass: 'Класс 1',
-      effectiveActivity: '50 Бк/кг',
-      adhesionStrength: '1.2 МПа',
-      compressiveStrength: '30 МПа',
-      strengthGrade: 'М300',
-      dryingTime: '24 часа',
-      frostResistance: '50 циклов',
-    },
-  })
-  @IsOptional()
-  @IsObject()
-  specifications?: Record<string, any>;
+  description: 'Характеристики продукта (JSON-объект)',
+  example: {
+    color: 'белый',
+    waterproof: true,
+    maxGrainSize: '2.5 мм',
+    mixingRatio: '1:3',
+    materialConsumption: '10 кг/м²',
+    mobilityClass: 'М100',
+    applicationTemperature: 'от +5 до +35',
+    solutionViability: '2 часа',
+    materialClass: 'Класс 1',
+    effectiveActivity: '50 Бк/кг',
+    adhesionStrength: '1.2 МПа',
+    compressiveStrength: '30 МПа',
+    strengthGrade: 'М300',
+    dryingTime: '24 часа',
+    frostResistance: '50 циклов',
+  },
+  type: 'object',
+  additionalProperties: true, // Указание, что объект может иметь дополнительные свойства
+})
+@IsOptional()
+@IsObject()
+specifications?: Record<string, any>;
+
 
   @ApiPropertyOptional({ description: 'ID категории', example: 1 })
   @IsOptional()

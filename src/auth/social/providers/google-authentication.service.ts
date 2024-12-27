@@ -68,7 +68,12 @@ export class GoogleAuthenticationService implements OnModuleInit {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Google authentication failed', error.message);
+      if (error instanceof Error) {
+         throw new UnauthorizedException('Google authentication failed', error.message);
+               } else {
+         throw new UnauthorizedException('Google authentication failed');
+      }
+
     }
   }
 }

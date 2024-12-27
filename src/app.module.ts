@@ -1,34 +1,25 @@
-import { Module } from '@nestjs/common';
-import { Product } from './categories/product.entity';
-import { MailModule } from './mail/mail.module';
-import { User } from './users/user.entity';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { PostsModule } from './posts/posts.module';
-import { CommentsModule } from './comments/comments.module';
-import { UsersModule } from './users/users.module';
-import { Comment } from './comments/comment.entity';
-import { Post } from './posts/post.entity';
-import { CartItem } from './cart/cart.entity';
-import { CartModule } from './cart/cart.module';
-import { ProductsModule } from './products/products.module'; 
-import { CategoriesModule } from './categories/categories.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CategoriesModule } from 'src/categories/categories.module';
+import { ProductsModule } from 'src/products/products.module';
+import { CatalogModule } from 'src/catalogs/catalogs.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { User } from 'src/users/user.entity';
+import { Comment } from 'src/comments/comment.entity';
+import { Product } from 'src/categories/product.entity';
+import { Category } from 'src/categories/category.entity';
+import { Post } from 'src/posts/post.entity';
+import { CartItem } from 'src/cart/cart.entity'; // Add this import
+import { Upload } from 'src/uploads/uploads.entity'; // Add this import
 
 @Module({
   imports: [
-    ProductsModule,
-    CategoriesModule,
-    UsersModule,
-    CommentsModule,
-    CartModule,
-    PostsModule,
-    AuthModule,
-    MailModule, // Убедитесь, что MailModule здесь
-    ConfigModule.forRoot({ isGlobal: true, 
+    ConfigModule.forRoot({
+      isGlobal: true,
       envFilePath: '.env',
-     }),
-     TypeOrmModule.forRootAsync({
+    }),
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -38,14 +29,16 @@ import { CategoriesModule } from './categories/categories.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, CartItem, Product, Post, Comment],
-        synchronize: configService.get<boolean>('DATABASE_SYNC'),
-        autoLoadEntities: configService.get<boolean>('DATABASE_AUTOLOAD'),
+        autoLoadEntities: true,
+        synchronize: true, // Disable in production
+        entities: [Product, Category, Comment, Post, User, CartItem, Upload],
         logging: true,
       }),
     }),
+    CategoriesModule,
+    ProductsModule,
+    CatalogModule,
+    forwardRef(() => AuthModule), // Используем forwardRef
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

@@ -20,7 +20,12 @@ export class MailService {
       });
       console.log(`Welcome email sent to ${user.email}`);
     } catch (error) {
-      console.error(`Failed to send welcome email: ${error.message}`);
+    if (error instanceof Error) {
+       console.error(`Failed to send welcome email: ${error.message}`);
+          } else {
+       console.error('Failed to send welcome email: Unknown error occurred');
+    }
+
     }
   }
 }

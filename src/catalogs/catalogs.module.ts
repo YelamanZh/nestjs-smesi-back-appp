@@ -1,19 +1,23 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Category } from 'src/categories/category.entity';
-import { Product } from 'src/categories/product.entity';
+import { Category } from '../categories/category.entity';
+import { Product } from '../categories/product.entity';
 import { CatalogService } from './providers/catalog.service';
-import { CatalogController } from 'src/catalogs/catalog.controller';
-import { AuthModule } from 'src/auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { CatalogController } from './catalog.controller';
+import { AuthModule } from '../auth/auth.module';
+import { ProductsModule } from '../products/products.module';
+import { CategoriesModule } from 'src/categories/categories.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Category, Product]),
-    AuthModule, // Добавляем AuthModule
-    ConfigModule
+    forwardRef(() => AuthModule), // Используем forwardRef для циклической зависимости
+    forwardRef(() => ProductsModule), // Используем forwardRef для ProductsModule
+    forwardRef(() => CategoriesModule), // Используем forwardRef для CategoriesModule
   ],
   controllers: [CatalogController],
   providers: [CatalogService],
+  exports: [CatalogService],
 })
+
 export class CatalogModule {}
