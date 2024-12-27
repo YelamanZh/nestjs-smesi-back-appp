@@ -10,6 +10,7 @@ import { fileTypes } from '../enums/file-types.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Upload } from '../uploads.entity';
 import { Repository } from 'typeorm';
+import { Express } from 'express';
 
 @Injectable()
 export class UploadsService {

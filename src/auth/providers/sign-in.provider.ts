@@ -5,66 +5,39 @@ import { HashingProvider } from './hashing.provider';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigType } from '@nestjs/config';
 import jwtConfig from '../config/jwt.config';
-import { ActiveUserData } from '../inteface/active-user-data.interface';
 import { GenerateTokensProvider } from './generate-tokens.provider';
 
 @Injectable()
 export class SignInProvider {
+  constructor(
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    private readonly hashingProvider: HashingProvider,
+    private readonly jwtService: JwtService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly generateTokenProvider: GenerateTokensProvider,
+  ) {}
 
-    constructor(
-        /**
-         * Inject usersService
-         */
-        @Inject(forwardRef(() => UsersService))
-        private readonly usersService: UsersService,
+  public async signIn(signInDto: SignInDto) {
+    const user = await this.usersService.findOneByEmail(signInDto.email);
 
-        /**
-         * Iject hashingProvider
-         */
-        private readonly hashingProvider: HashingProvider,
-
-        /**
-         * Inject jwtService
-         */
-        private readonly jwtService: JwtService,
-
-        /**
-         * Inject jwtConfiguration
-         */
-        @Inject(jwtConfig.KEY)
-        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-
-        /**
-         * Inject generateTokenProvider
-         */
-        private readonly generateTokenProvider : GenerateTokensProvider,
-
-
-    ) { }
-
-    public async signIn(signInDto: SignInDto) {
-        //Find the user using email ID
-        //Throw an exception user not found
-        let user = await this.usersService.findOneByEmail(signInDto.email)
-
-        //Compare password to the hash
-        let isEqual: boolean = false;
-
-        try {
-            isEqual = await this.hashingProvider.comparePassword(
-                signInDto.password,
-                user.password,
-            )
-        } catch (error) {
-            throw new RequestTimeoutException(error, {
-                description: 'Could not compare passwords'
-            })
-        }
-
-        if (!isEqual) {
-            throw new UnauthorizedException('Incorrect Password')
-        }
-
-        return await this.generateTokenProvider.generateTokens(user)
+    if (!user.password) {
+      throw new UnauthorizedException('Password is not set for this user');
     }
+
+    let isEqual: boolean;
+
+    try {
+      isEqual = await this.hashingProvider.comparePassword(signInDto.password, user.password);
+    } catch (error) {
+      throw new RequestTimeoutException('Could not compare passwords', { cause: error });
+    }
+
+    if (!isEqual) {
+      throw new UnauthorizedException('Incorrect Password');
+    }
+
+    return await this.generateTokenProvider.generateTokens(user);
+  }
 }

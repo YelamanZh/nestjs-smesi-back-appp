@@ -17,19 +17,10 @@ export class GoogleAuthenticationService implements OnModuleInit {
   private oauthClient: OAuth2Client;
 
   constructor(
-    /**
-     * Inject UsersService
-     */
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-    /**
-     * Inject jwtConfiguration
-     */
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-    /**
-     * Inject generateTokensProvider
-     */
     private readonly generateTokensProvider: GenerateTokensProvider,
   ) {}
 
@@ -41,37 +32,43 @@ export class GoogleAuthenticationService implements OnModuleInit {
 
   public async authenticate(googleTokenDto: GoogleTokenDto) {
     try {
-      //verify the google token sent by User
+      // Verify the Google token sent by User
       const loginTicket = await this.oauthClient.verifyIdToken({
         idToken: googleTokenDto.token,
       });
 
-      //extract the playload from google jwt
-      const {
-        email,
-        sub: googleId,
-        given_name: firstName,
-        family_name: lastName,
-      } = loginTicket.getPayload();
+      // Extract the payload from Google JWT
+      const payload = loginTicket.getPayload();
+      if (!payload) {
+        throw new UnauthorizedException('Invalid Google token payload');
+      }
 
-      // find the user in the db using the googleid
+      const { email, sub: googleId, given_name: firstName, family_name: lastName } = payload;
+
+      if (!email || !googleId || !firstName || !lastName) {
+        throw new UnauthorizedException('Missing required fields in Google token payload');
+      }
+
+      // Find the user in the DB using the Google ID
       const user = await this.usersService.findOneByGoogleId(googleId);
-      //if gooleid exist generate token
       if (user) {
         return this.generateTokensProvider.generateTokens(user);
       }
-      //if not, create a new user and then generate tokens
+
+      // If not, create a new user and then generate tokens
       const newUser = await this.usersService.createGoogleUser({
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        googleId: googleId,
+        email,
+        firstName,
+        lastName,
+        googleId,
       });
 
       return this.generateTokensProvider.generateTokens(newUser);
     } catch (error) {
-      //throw unautorized exception
-      throw new UnauthorizedException(error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Google authentication failed', error.message);
     }
   }
 }

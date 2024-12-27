@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiBody, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -34,13 +34,12 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   @IsNumber()
   price: number;
 
-  @ApiPropertyOptional({
-    description: 'Ссылка на изображение',
-    example: 'https://example.com/image.jpg',
+  @ApiProperty({
+    description: 'Изображение продукта',
+    type: 'string',
+    format: 'binary',
   })
-  @IsOptional()
-  @IsString()
-  imageUrl?: string; // Поле для одной фотографии
+  file: any;
 
   @ApiProperty({ description: 'ID категории', example: 1 })
   @IsNumber()

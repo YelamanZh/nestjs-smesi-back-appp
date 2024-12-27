@@ -21,7 +21,11 @@ export class CategoriesService {
   }
 
   async findOne(id: number): Promise<Category> {
-    return this.categoryRepository.findOne({ where: { id }, relations: ['products'] });
+    const category = await this.categoryRepository.findOne({ where: { id }, relations: ['products'] });
+    if (!category) {
+      throw new NotFoundException(`Категория с ID ${id} не найдена`);
+    }
+    return category;
   }
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
@@ -31,25 +35,23 @@ export class CategoriesService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
     const category = await this.findOne(id);
-    if (!category) {
-      throw new NotFoundException('Категория не найдена');
-    }
-
     Object.assign(category, updateCategoryDto);
     return this.categoryRepository.save(category);
   }
 
   async remove(id: number): Promise<void> {
     const category = await this.findOne(id);
-    if (!category) {
-      throw new NotFoundException('Категория не найдена');
-    }
 
-    // Удаляем связанные продукты
-    await Promise.all(
-      category.products.map((product) => this.productService.remove(product.id)),
-    );
+    await this.categoryRepository.manager.transaction(async (transactionalEntityManager) => {
+      // Удаляем связанные продукты
+      await Promise.all(
+        category.products.map((product) =>
+          transactionalEntityManager.delete('Product', product.id),
+        ),
+      );
 
-    await this.categoryRepository.remove(category);
+      // Удаляем категорию
+      await transactionalEntityManager.remove(category);
+    });
   }
 }

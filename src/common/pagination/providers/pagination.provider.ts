@@ -5,7 +5,6 @@ import {REQUEST} from '@nestjs/core'
 import { Request } from 'express';
 import { Paginated } from '../interfaces/paginated.interface';
 
-
 @Injectable()
 export class PaginationProvider {
     constructor(
@@ -14,54 +13,48 @@ export class PaginationProvider {
          */
         @Inject(REQUEST)
         private readonly request: Request,
-    ){}
+    ) {}
+
     public async paginateQuery<T extends ObjectLiteral>(
         paginationQuery: PaginationQueryDto,
         repository: Repository<T>,
     ): Promise<Paginated<T>> {
-        let limit = paginationQuery.limit;
-        let page = paginationQuery.page;
+        // Устанавливаем значения по умолчанию
+        const limit = paginationQuery.limit || 10;
+        const page = paginationQuery.page || 1;
 
+        // Получаем данные и общее количество элементов
         const [data, totalItems] = await repository.findAndCount({
             skip: (page - 1) * limit,
             take: limit,
         });
 
-        let results = await repository.findAndCount({
-            skip: (page - 1) * limit,
-            take: limit,
-        });
+        // Генерируем базовый URL
+        const baseURL = `${this.request.protocol}://${this.request.headers.host}`;
+        const url = new URL(this.request.url, baseURL);
 
-        
-        /**
-         * Create request URLS
-        */
-       const baseURL = this.request.protocol + '://' + this.request.headers.host + '/';
-       const newUrl = new URL(this.request.url, baseURL);
-       
-       console.log(newUrl);
-       
-       const totalPages = Math.ceil(totalItems / limit);
+        // Вычисляем общее количество страниц
+        const totalPages = Math.ceil(totalItems / limit);
 
-       const nextPage = page === totalPages ? page : page + 1;
+        // Рассчитываем ссылки на предыдущую и следующую страницы
+        const nextPage = page < totalPages ? page + 1 : totalPages;
+        const perviousPage = page > 1 ? page - 1 : 1;
 
-       const perviousPage = page === 1 ? page : page - 1;
-
-       return {
-        data,
-        meta: {
-            itemsPerPage: limit,
-            totalItem: totalItems, // Здесь исправлено
-            currentPage: page,
-            totalPages,
-        },
-        links: {
-            first: `${newUrl.origin}${newUrl.pathname}?limit=${limit}&page=1`,
-            last: `${newUrl.origin}${newUrl.pathname}?limit=${limit}&page=${totalPages}`,
-            current: `${newUrl.origin}${newUrl.pathname}?limit=${limit}&page=${page}`,
-            next: `${newUrl.origin}${newUrl.pathname}?limit=${limit}&page=${nextPage}`,
-            pervious: `${newUrl.origin}${newUrl.pathname}?limit=${limit}&page=${perviousPage}`,
-        },
-    };
+        return {
+            data,
+            meta: {
+                itemsPerPage: limit,
+                totalItem: totalItems,
+                currentPage: page,
+                totalPages,
+            },
+            links: {
+                first: `${url.origin}${url.pathname}?limit=${limit}&page=1`,
+                last: `${url.origin}${url.pathname}?limit=${limit}&page=${totalPages}`,
+                current: `${url.origin}${url.pathname}?limit=${limit}&page=${page}`,
+                next: `${url.origin}${url.pathname}?limit=${limit}&page=${nextPage}`,
+                pervious: `${url.origin}${url.pathname}?limit=${limit}&page=${perviousPage}`,
+            },
+        };
     }
 }

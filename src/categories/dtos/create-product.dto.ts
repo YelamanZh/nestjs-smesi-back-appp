@@ -17,11 +17,6 @@ export class CreateProductDto {
   @IsString()
   name: string; // Название продукта
 
-  @ApiPropertyOptional({ description: 'Ссылка на изображение', example: 'https://example.com/image.jpg' })
-  @IsOptional()
-  @IsString()
-  imageUrl?: string; // Поле для одной фотографии
-
   @ApiPropertyOptional({
     description: 'Описание продукта',
     example: 'Качественный цемент для строительства',
@@ -45,7 +40,7 @@ export class CreateProductDto {
   @IsNumber({ allowInfinity: false, allowNaN: false }, { message: 'Цена должна быть числом' })
   price: number; // Цена продукта
 
-  @ApiProperty({
+@ApiProperty({
     description: 'Характеристики продукта',
     example: {
       color: 'белый',
@@ -66,10 +61,17 @@ export class CreateProductDto {
     },
   })
   @IsObject()
-  specifications: Record<string, any>; // Характеристики продукта
-
+  specifications: Record<string, any>;
   @ApiProperty({ description: 'ID категории', example: 1 })
   @IsNotEmpty()
   @IsNumber()
   categoryId: number; // ID категории
+
+  @ApiProperty({
+    description: 'Изображение продукта',
+    type: 'string',
+    format: 'binary',
+  })
+  file: any;
+
 }

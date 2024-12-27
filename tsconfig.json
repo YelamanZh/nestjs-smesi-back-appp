@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["node"],
+    "types": ["node", "jest", "multer"], // Добавляем поддержку типов Jest для тестирования
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -12,11 +12,15 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "skipLibCheck": true, // Пропускаем проверку библиотек
+    "strictNullChecks": true, // Включаем строгую проверку null
+    "noImplicitAny": true, // Обеспечиваем строгую проверку типов
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true, // Для импорта JSON-файлов
+    "esModuleInterop": true // Упрощаем использование модулей CommonJS
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"], // Указываем исходные и тестовые файлы
+  "exclude": ["node_modules", "dist"] // Исключаем ненужные файлы
 }

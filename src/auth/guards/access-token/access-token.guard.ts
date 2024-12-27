@@ -15,6 +15,10 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/auth/decorators/roles.decorator';
 import { userRole } from 'src/users/enums/userRole.enum';
 
+interface CustomRequest extends Request {
+  user?: any;
+}
+
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
   constructor(
@@ -25,7 +29,7 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<CustomRequest>();
     const token = this.extractTokenFromHeader(request);
 
     const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
@@ -38,14 +42,11 @@ export class AccessTokenGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(
-        token,
-        {
-          secret: this.jwtConfiguration.secret,
-          audience: this.jwtConfiguration.audience,
-          issuer: this.jwtConfiguration.issuer,
-        },
-      );
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.jwtConfiguration.secret,
+        audience: this.jwtConfiguration.audience,
+        issuer: this.jwtConfiguration.issuer,
+      });
       request[REQUEST_USER_KEY] = payload;
 
       const requiredRoles = this.reflector.get<userRole[]>(ROLES_KEY, context.getHandler());

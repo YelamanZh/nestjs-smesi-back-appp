@@ -7,6 +7,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { UploadToAwsProvider } from './providers/upload-to-aws.provider';
+import { Express } from 'express';
 
 @ApiTags('Uploads') // Тег для Swagger
 @Controller('uploads')
