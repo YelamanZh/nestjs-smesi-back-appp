@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from 'src/categories/product.entity';
@@ -9,43 +9,7 @@ import * as AWS from 'aws-sdk';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-@Injectable()
-export class ProductsService {
-  private s3: AWS.S3;
-
-  constructor(
-    @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
-    @InjectRepository(Category)
-    private readonly categoriesRepository: Repository<Category>,
-  ) {
-    this.s3 = new AWS.S3({
-      region: process.env.AWS_REGION,
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    });
-  }
-
-  async findAll(): Promise<Product[]> {
-    return this.productsRepository.find({ relations: ['category'] });
-  }
-
-  async create(createProductDto: CreateProductDto, file: Express.Multer.File): Promise<Product> {
-    const { categoryId, ...productData } = createProductDto;
-
-    const category = await this.categoriesRepository.findOne({ where: { id: categoryId } });
-    if (!category) {
-      throw new NotFoundException('Категория не найдена');
-    }
-
-    const imageUrl = await this.uploadImageToS3(file);
-
-    const product = this.productsRepository.create({
-      ...productData,
-      imageUrl,
-      category,
-    });
-
+@Injectable() export class ProductsService { private s3: AWS.S3; constructor( @InjectRepository(Product) private readonly productsRepository: Repository<Product>, @InjectRepository(Category) private readonly categoriesRepository: Repository<Category>, ) { this.s3 = new AWS.S3({ region: process.env.AWS_REGION, accessKeyId: process.env.AWS_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, }); } async findAll(): Promise<Product[]> { return this.productsRepository.find({ relations: ['category'] }); } async create(createProductDto: CreateProductDto, file: Express.Multer.File): Promise<Product> { const { categoryId, specifications, ...productData } = createProductDto; let parsedSpecifications: Record<string, unknown> = {}; if (specifications) { if (typeof specifications === 'string') { try { parsedSpecifications = JSON.parse(specifications); } catch { throw new BadRequestException('Invalid specifications format'); } } else { parsedSpecifications = specifications; } } const category = await this.categoriesRepository.findOne({ where: { id: categoryId } }); if (!category) { throw new NotFoundException('Категория не найдена'); } const imageUrl = await this.uploadImageToS3(file); const product = this.productsRepository.create({ ...productData, specifications: parsedSpecifications, imageUrl, category, });
     return this.productsRepository.save(product);
   }
 
@@ -54,7 +18,7 @@ export class ProductsService {
     updateProductDto: UpdateProductDto,
     file?: Express.Multer.File,
   ): Promise<Product> {
-    const { categoryId, ...productData } = updateProductDto;
+    const { categoryId, specifications, ...productData } = updateProductDto;
 
     const product = await this.productsRepository.findOne({ where: { id } });
     if (!product) {
@@ -68,6 +32,21 @@ export class ProductsService {
       }
       product.category = category;
     }
+
+    let parsedSpecifications: Record<string, unknown> = {};
+    if (specifications) {
+      if (typeof specifications === 'string') {
+        try {
+          parsedSpecifications = JSON.parse(specifications);
+        } catch {
+          throw new BadRequestException('Invalid specifications format');
+        }
+      } else {
+        parsedSpecifications = specifications;
+      }
+    }
+
+    product.specifications = parsedSpecifications || {};
 
     if (file) {
       product.imageUrl = await this.uploadImageToS3(file);

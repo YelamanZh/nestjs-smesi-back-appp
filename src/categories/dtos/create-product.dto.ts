@@ -15,32 +15,36 @@ export class CreateProductDto {
   @ApiProperty({ description: 'Название продукта', example: 'Цемент' })
   @IsNotEmpty()
   @IsString()
-  name: string; // Название продукта
+  name: string;
 
   @ApiPropertyOptional({
     description: 'Описание продукта',
     example: 'Качественный цемент для строительства',
   })
+  @IsOptional()
   @IsString()
-  description?: string; // Описание продукта
+  description?: string;
 
   @ApiProperty({ description: 'Есть ли в наличии', example: true })
+  @IsNotEmpty()
   @IsBoolean()
-  inStock: boolean; // В наличии или нет
+  inStock: boolean;
 
   @ApiProperty({
     description: 'Статус продукта',
     example: 'новинка',
-    enum: ['новинка', 'акция', 'рекомендуем', 'хит', 'обычный'],
+    enum: ProductStatus,
   })
+  @IsNotEmpty()
   @IsEnum(ProductStatus)
-  status: ProductStatus; // Статус продукта
+  status: ProductStatus;
 
   @ApiProperty({ description: 'Цена продукта', example: 1500.5 })
-  @IsNumber({ allowInfinity: false, allowNaN: false }, { message: 'Цена должна быть числом' })
-  price: number; // Цена продукта
+  @IsNotEmpty()
+  @IsNumber()
+  price: number;
 
-@ApiProperty({
+  @ApiProperty({
     description: 'Характеристики продукта',
     example: {
       color: 'белый',
@@ -55,23 +59,25 @@ export class CreateProductDto {
       effectiveActivity: '50 Бк/кг',
       adhesionStrength: '1.2 МПа',
       compressiveStrength: '30 МПа',
-      strengthClass: 'М300',
+      strengthGrade: 'М300',
       dryingTime: '24 часа',
       frostResistance: '50 циклов',
     },
   })
+  @IsOptional()
   @IsObject()
-  specifications: Record<string, any>;
+  specifications?: Record<string, any>;
+
   @ApiProperty({ description: 'ID категории', example: 1 })
   @IsNotEmpty()
   @IsNumber()
-  categoryId: number; // ID категории
+  categoryId: number;
 
   @ApiProperty({
     description: 'Изображение продукта',
     type: 'string',
     format: 'binary',
   })
+  @IsOptional()
   file: any;
-
 }

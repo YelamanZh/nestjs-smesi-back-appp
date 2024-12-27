@@ -8,9 +8,8 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { Category } from './category.entity';
+import { Category } from 'src/categories/category.entity';
 import { Comment } from 'src/comments/comment.entity';
-import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export enum ProductStatus {
   New = 'новинка',
@@ -29,10 +28,10 @@ export class Product {
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
-  imageUrl: string;
+  imageUrl?: string; // Ссылка на изображение в S3
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description?: string;
 
   @Column({ type: 'boolean', default: true })
   inStock: boolean;
@@ -44,13 +43,27 @@ export class Product {
   })
   status: ProductStatus;
 
-  @IsNumber({}, { message: 'Цена должна быть числом' })
-  @IsNotEmpty()
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   price: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  specifications: Record<string, unknown>;
+  specifications: {
+    color?: string;
+    waterResistance?: string;
+    maxGrainSize?: string;
+    mixingRatio?: string;
+    materialConsumption?: string;
+    mobilityGrade?: string;
+    applicationTemperature?: string;
+    solutionLife?: string;
+    materialClass?: string;
+    activityErn?: string;
+    adhesionStrength?: string;
+    compressiveStrength?: string;
+    strengthGrade?: string;
+    dryingTime?: string;
+    frostResistance?: string;
+  };
 
   @CreateDateColumn()
   createdAt: Date;

@@ -11,37 +11,72 @@ import {
   IsOptional,
 } from 'class-validator';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
+import { ProductStatus } from 'src/categories/product.entity';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
-  @ApiProperty({ description: 'Название продукта', example: 'Цемент' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ description: 'Название продукта', example: 'Цемент' })
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
-  @ApiPropertyOptional({
-    description: 'Описание продукта',
-    example: 'Качественный цемент',
-  })
+  @ApiPropertyOptional({ description: 'Описание продукта', example: 'Качественный цемент' })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty({ description: 'Есть ли в наличии', example: true })
+  @ApiPropertyOptional({ description: 'Есть ли в наличии', example: true })
+  @IsOptional()
   @IsBoolean()
-  inStock: boolean;
+  inStock?: boolean;
 
-  @ApiProperty({ description: 'Цена', example: 1000.9 })
+  @ApiPropertyOptional({
+    description: 'Статус продукта',
+    example: 'новинка',
+    enum: ProductStatus,
+  })
+  @IsOptional()
+  @IsEnum(ProductStatus)
+  status?: ProductStatus;
+
+  @ApiPropertyOptional({ description: 'Цена продукта', example: 1500.5 })
+  @IsOptional()
   @IsNumber()
-  price: number;
+  price?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'Характеристики продукта',
+    example: {
+      color: 'белый',
+      waterproof: true,
+      maxGrainSize: '2.5 мм',
+      mixingRatio: '1:3',
+      materialConsumption: '10 кг/м²',
+      mobilityClass: 'М100',
+      applicationTemperature: 'от +5 до +35',
+      solutionViability: '2 часа',
+      materialClass: 'Класс 1',
+      effectiveActivity: '50 Бк/кг',
+      adhesionStrength: '1.2 МПа',
+      compressiveStrength: '30 МПа',
+      strengthGrade: 'М300',
+      dryingTime: '24 часа',
+      frostResistance: '50 циклов',
+    },
+  })
+  @IsOptional()
+  @IsObject()
+  specifications?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: 'ID категории', example: 1 })
+  @IsOptional()
+  @IsNumber()
+  categoryId?: number;
+
+  @ApiPropertyOptional({
     description: 'Изображение продукта',
     type: 'string',
     format: 'binary',
   })
-  file: any;
-
-  @ApiProperty({ description: 'ID категории', example: 1 })
-  @IsNumber()
-  categoryId: number;
+  @IsOptional()
+  file?: any;
 }
