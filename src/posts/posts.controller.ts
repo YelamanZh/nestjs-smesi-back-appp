@@ -39,6 +39,7 @@ export class PostsController {
 
   @ApiOperation({ summary: 'Получить все новости' })
   @ApiResponse({ status: 200, description: 'Список новостей успешно получен' })
+  @Public() // Доступно всем
   @Get()
   async getAllPosts(
     @Query('page', ParseIntPipe) page: number = 1,
@@ -50,6 +51,7 @@ export class PostsController {
   @ApiOperation({ summary: 'Получить новость по ID' })
   @ApiResponse({ status: 200, description: 'Новость успешно получена' })
   @ApiResponse({ status: 404, description: 'Новость не найдена' })
+  @Public() // Доступно всем
   @Get(':id')
   async getPostById(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
@@ -57,19 +59,19 @@ export class PostsController {
 
   @ApiOperation({ summary: 'Создать новость (только админ)' })
   @ApiConsumes('multipart/form-data')
-  @Public()
-  @Roles(userRole.ADMIN)
+  @Roles(userRole.ADMIN) // Только админ
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
     AnyFilesInterceptor({
-      limits: { fileSize: 10 * 1024 * 1024 }, // Максимальный размер файла 10MB
+      limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (req, file, callback) => {
         if (file.fieldname === 'previewImage' || file.fieldname === 'images') {
-          callback(null, true); // Разрешаем файл
+          callback(null, true);
         } else {
-          callback(new Error('Unexpected field'), false); // Отклоняем файл
+          callback(new Error('Unexpected field'), false);
         }
       },
     }),
@@ -85,9 +87,9 @@ export class PostsController {
 
   @ApiOperation({ summary: 'Обновить новость (только админ)' })
   @ApiConsumes('multipart/form-data')
-  @Public()  
-  @Roles(userRole.ADMIN)
+  @Roles(userRole.ADMIN) // Только админ
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(
@@ -113,9 +115,9 @@ export class PostsController {
   }
 
   @ApiOperation({ summary: 'Удалить новость (только админ)' })
-  @Public()
-  @Roles(userRole.ADMIN)
+  @Roles(userRole.ADMIN) // Только админ
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(@Param('id', ParseIntPipe) id: number) {

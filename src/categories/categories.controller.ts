@@ -14,9 +14,11 @@ import { CreateCategoryDto } from './dtos/create-category.dto';
 import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { AccessTokenGuard } from 'src/auth/guards/access-token/access-token.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { userRole } from 'src/users/enums/userRole.enum';
 
-@ApiTags('Categories')
+@ApiTags('Категории')
+@ApiBearerAuth() // Добавляет информацию о Bearer Token в Swagger
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -28,16 +30,18 @@ export class CategoriesController {
   }
 
   @ApiOperation({ summary: 'Создать категорию' })
-  @Public()
   @UseGuards(AccessTokenGuard)
+  @Roles(userRole.ADMIN) // Только для админов
+  @ApiBearerAuth()
   @Post()
   async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.createCategory(createCategoryDto);
   }
 
   @ApiOperation({ summary: 'Обновить категорию' })
-  @Public()
   @UseGuards(AccessTokenGuard)
+  @Roles(userRole.ADMIN) // Только для админов
+  @ApiBearerAuth()
   @Patch(':id')
   async updateCategory(
     @Param('id', ParseIntPipe) id: number,
@@ -47,8 +51,9 @@ export class CategoriesController {
   }
 
   @ApiOperation({ summary: 'Удалить категорию' })
-  @ApiBearerAuth('JWT')
   @UseGuards(AccessTokenGuard)
+  @Roles(userRole.ADMIN) // Только для админов
+  @ApiBearerAuth()
   @Delete(':id')
   async deleteCategory(@Param('id', ParseIntPipe) id: number) {
     return this.categoriesService.deleteCategory(id);

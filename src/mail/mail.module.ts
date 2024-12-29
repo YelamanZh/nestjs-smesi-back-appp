@@ -1,7 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'; // Для Handlebars
 import { MailService } from 'src/mail/providers/mail.service';
 import * as path from 'path';
 
@@ -23,8 +22,7 @@ import * as path from 'path';
           from: configService.get<string>('MAIL_FROM'),
         },
         template: {
-          dir: path.join(__dirname, 'templates'), // Убедитесь, что папка `templates` существует
-          adapter: new HandlebarsAdapter(), // Используйте правильный адаптер
+          dir: path.join(__dirname, 'templates'), // Adjust to your structure
           options: {
             strict: true,
           },

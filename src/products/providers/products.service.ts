@@ -14,6 +14,7 @@ import { MailService } from 'src/mail/providers/mail.service';
 import { UsersService } from 'src/users/providers/users.service';
 import { GetUsersParamDto } from 'src/users/dtos/get-users-param.dto'
 import { Category } from 'src/categories/category.entity'
+import { User } from 'src/users/user.entity'
 
 @Injectable()
 export class ProductsService {
@@ -23,6 +24,8 @@ export class ProductsService {
     private readonly uploadsService: UploadsService,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    private readonly mailService: MailService,
+    private readonly usersService: UsersService,
   ) {}
 
   async findAll(page: number, limit: number) {
@@ -56,6 +59,11 @@ export class ProductsService {
       imageUrl,
       category
     });
+    const { data: users } = await this.usersService.findAll({}, 1000, 1);
+
+    for (const user of users) {
+      await this.mailService.sendProductUpdateNotification(user, newProduct.name);
+    }
 
     return this.productRepository.save(newProduct);
   }

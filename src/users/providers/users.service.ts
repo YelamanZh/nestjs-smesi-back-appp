@@ -43,9 +43,9 @@ export class UsersService {
   }
 
   public async findAll(
-    getUsersParamDto: GetUsersParamDto,
-    limit: number,
-    page: number,
+    getUsersParamDto: GetUsersParamDto = {},
+    limit: number = 20,
+    page: number = 1,
   ) {
     try {
       const [users, total] = await this.usersRepository.findAndCount({
@@ -141,5 +141,13 @@ export class UsersService {
     hashedPassword: string,
   ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+        const user = await this.usersRepository.findOneBy({ id });
+        if (!user) {
+            throw new NotFoundException(`Пользователь с ID ${id} не найден`);
+        }
+        await this.usersRepository.remove(user);
   }
 }

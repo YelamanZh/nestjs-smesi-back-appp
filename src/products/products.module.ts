@@ -9,6 +9,8 @@ import { Category } from 'src/categories/category.entity'
 import { UploadsModule } from 'src/uploads/uploads.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { MailModule } from 'src/mail/mail.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -17,7 +19,9 @@ import { JwtModule } from '@nestjs/jwt';
     forwardRef(() => CategoriesModule),
     forwardRef(() => CatalogModule),
     forwardRef(() => AuthModule),
-    JwtModule.register({}),    
+    JwtModule.register({}),
+    MailModule,
+    UsersModule,
   ],
   providers: [ProductsService],
   controllers: [ProductsController],

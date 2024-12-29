@@ -64,7 +64,10 @@ export class AccessTokenGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    const [_, token] = request.headers.authorization?.split(' ') ?? [];
+    console.log('Headers:', request.headers); // Лог всех заголовков
+    const authorizationHeader = request.headers.authorization;
+    console.log('Authorization Header:', authorizationHeader);
+    const [_, token] = authorizationHeader?.split(' ') ?? [];
     console.log('Extracted Token:', token);
     return token;
   }

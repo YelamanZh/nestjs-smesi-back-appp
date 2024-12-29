@@ -12,6 +12,7 @@ import { UploadsService } from 'src/uploads/providers/uploads.service';
 import { MailService } from 'src/mail/providers/mail.service';
 import { UsersService } from 'src/users/providers/users.service';
 import { Express } from 'express';
+import { User } from 'src/users/user.entity'
 
 @Injectable()
 export class PostsService {
@@ -19,6 +20,8 @@ export class PostsService {
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
     private readonly uploadsService: UploadsService,
+    private readonly mailService: MailService,
+    private readonly usersService: UsersService,
   ) {}
 
   async getAllPosts(page: number, limit: number) {
@@ -54,6 +57,11 @@ export class PostsService {
       previewImage: previewImageUrl,
       images: imageUrls,
     });
+    const { data: users } = await this.usersService.findAll({}, 1000, 1);
+
+    for (const user of users) {
+      await this.mailService.sendNewsUpdateNotification(user, post.title);
+    }
 
     return this.postRepository.save(post);
   }

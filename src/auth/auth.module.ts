@@ -22,9 +22,10 @@ import { GoogleAuthenticationService } from './social/providers/google-authentic
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
-        audience: configService.get<string>('JWT_TOKEN_AUDIENCE'),
-        issuer: configService.get<string>('JWT_TOKEN_ISSUER'),
+        signOptions: {
+          expiresIn: '1h', 
+          audience: configService.get<string>('JWT_TOKEN_AUDIENCE'),
+          issuer: configService.get<string>('JWT_TOKEN_ISSUER'), },
       }),
     }),
     forwardRef(() => UsersModule),

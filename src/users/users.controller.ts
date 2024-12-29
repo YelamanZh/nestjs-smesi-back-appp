@@ -1,6 +1,7 @@
 import {
     Controller,
     Get,
+    Delete,
     Param,
     Patch,
     Post,
@@ -96,5 +97,20 @@ export class UsersController {
     })
     public patchUser(@Body() patchUserDto: PatchUserDto) {
         return this.usersService.updateUser(patchUserDto);
+    }
+    @Delete(':id')
+    @ApiOperation({
+        summary: 'Удалить пользователя по ID',
+    })
+    @ApiResponse({
+        status: 204,
+        description: 'Пользователь успешно удален',
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Пользователь не найден',
+    })
+    public async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<void> {
+        await this.usersService.deleteUser(id);
     }
 }
