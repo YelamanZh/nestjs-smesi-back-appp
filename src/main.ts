@@ -33,6 +33,7 @@ async function bootstrap() {
     .addServer('http://localhost:3000')
     .addServer('http://ec2-13-51-241-139.eu-north-1.compute.amazonaws.com:3000')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

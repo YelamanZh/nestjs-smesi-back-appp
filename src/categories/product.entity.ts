@@ -10,14 +10,7 @@ import {
 } from 'typeorm';
 import { Category } from 'src/categories/category.entity';
 import { Comment } from 'src/comments/comment.entity';
-
-export enum ProductStatus {
-  New = 'новинка',
-  Promo = 'акция',
-  Recommend = 'рекомендуем',
-  Hit = 'хит',
-  Regular = 'обычный',
-}
+import { ProductStatus } from 'src/categories/enums/productStatus.enum';
 
 @Entity('products')
 export class Product {
@@ -28,7 +21,7 @@ export class Product {
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
-  imageUrl?: string; // Ссылка на изображение в S3
+  imageUrl?: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
@@ -39,7 +32,7 @@ export class Product {
   @Column({
     type: 'enum',
     enum: ProductStatus,
-    default: ProductStatus.Regular,
+    default: ProductStatus.REGULAR, // Убедитесь, что REGULAR определен в enum
   })
   status: ProductStatus;
 
@@ -47,23 +40,7 @@ export class Product {
   price: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  specifications: {
-    color?: string;
-    waterResistance?: string;
-    maxGrainSize?: string;
-    mixingRatio?: string;
-    materialConsumption?: string;
-    mobilityGrade?: string;
-    applicationTemperature?: string;
-    solutionLife?: string;
-    materialClass?: string;
-    activityErn?: string;
-    adhesionStrength?: string;
-    compressiveStrength?: string;
-    strengthGrade?: string;
-    dryingTime?: string;
-    frostResistance?: string;
-  };
+  specifications?: Record<string, any>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -72,7 +49,7 @@ export class Product {
   updatedAt: Date;
 
   @ManyToOne(() => Category, (category) => category.products, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'category_id' })
   category: Category;

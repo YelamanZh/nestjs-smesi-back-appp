@@ -15,7 +15,6 @@ import { CategoriesModule } from 'src/categories/categories.module';
     forwardRef(() => ProductsModule), // Используем forwardRef для ProductsModule
     forwardRef(() => CategoriesModule), // Используем forwardRef для CategoriesModule
   ],
-  controllers: [CatalogController],
   providers: [CatalogService],
   exports: [CatalogService],
 })

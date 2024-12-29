@@ -1,119 +1,89 @@
-import { Injectable, Inject, forwardRef, NotFoundException, BadRequestException, } from '@nestjs/common';
-import { CatalogService } from 'src/catalogs/providers/catalog.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from 'src/categories/product.entity';
-import { Category } from 'src/categories/category.entity';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
 import { UpdateProductDto } from 'src/products/dtos/update-product.dto';
-import * as AWS from 'aws-sdk';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { UploadsService } from 'src/uploads/providers/uploads.service';
+import { Express } from 'express';
+import { MailService } from 'src/mail/providers/mail.service';
+import { UsersService } from 'src/users/providers/users.service';
+import { GetUsersParamDto } from 'src/users/dtos/get-users-param.dto'
+import { Category } from 'src/categories/category.entity'
 
 @Injectable()
 export class ProductsService {
-  private s3: AWS.S3;
-
   constructor(
     @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
+    private readonly productRepository: Repository<Product>,
+    private readonly uploadsService: UploadsService,
     @InjectRepository(Category)
-    private readonly categoriesRepository: Repository<Category>,
-    @Inject(forwardRef(() => CatalogService))
-    private readonly catalogService: CatalogService,
-  ) {
-    this.s3 = new AWS.S3({
-      region: process.env.AWS_REGION,
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    });
-  }
+    private readonly categoryRepository: Repository<Category>,
+  ) {}
 
-  async findAll(): Promise<Product[]> {
-    return this.productsRepository.find({ relations: ['category'] });
-  }
-
-  async getProductsByCategory(categoryId: number): Promise<Product[]> {
-    const category = await this.categoriesRepository.findOne({ where: { id: categoryId } });
-    if (!category) {
-      throw new NotFoundException(`Категория с ID ${categoryId} не найдена`);
-    }
-
-    return this.productsRepository.find({
-      where: { category: { id: categoryId } },
+  async findAll(page: number, limit: number) {
+    const [data, total] = await this.productRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
       relations: ['category'],
     });
+    return { data, total };
   }
 
-  async createProduct(
-  createProductDto: CreateProductDto,
-  file?: Express.Multer.File,
-): Promise<Product> {
-  const { categoryId, ...productData } = createProductDto;
+  async create(createProductDto: CreateProductDto, image?: Express.Multer.File) {
+    let imageUrl: string | undefined;
 
-  const category = await this.categoriesRepository.findOne({ where: { id: categoryId } });
-  if (!category) {
-    throw new NotFoundException(`Категория с ID ${categoryId} не найдена`);
-  }
-
-  let imageUrl: string | undefined;
-  if (file) {
-    imageUrl = await this.uploadImageToS3(file); // Загрузка изображения в S3
-  }
-
-  const product = this.productsRepository.create({
-    ...productData,
-    imageUrl,
-    category,
-  });
-
-  return this.productsRepository.save(product);
-}
-
-
-  async update(id: number, updateProductDto: UpdateProductDto, file?: Express.Multer.File): Promise<Product> {
-    const product = await this.productsRepository.findOne({ where: { id } });
-    if (!product) {
-      throw new NotFoundException('Продукт не найден');
+    if (image) {
+      const uploadResult = await this.uploadsService.uploadFile(image);
+      imageUrl = uploadResult.path;
     }
 
-    const { categoryId, specifications, ...productData } = updateProductDto;
-    const category = await this.categoriesRepository.findOne({ where: { id: categoryId } });
-    if (!category) {
-      throw new NotFoundException('Категория не найдена');
-    }
+   const category = await this.categoryRepository.findOne({
+     where: { id: createProductDto.categoryId },
+   });
 
-    const imageUrl = file ? await this.uploadImageToS3(file) : product.imageUrl;
+   if (!category) {
+     throw new NotFoundException(`Категория с ID ${createProductDto.categoryId} не найдена`);
+   }
 
-    Object.assign(product, {
-      ...productData,
-      specifications,
+    const newProduct = this.productRepository.create({
+      ...createProductDto,
       imageUrl,
-      category,
+      category
     });
 
-    return this.productsRepository.save(product);
+    return this.productRepository.save(newProduct);
   }
 
-  async remove(id: number): Promise<void> {
-    const product = await this.productsRepository.findOne({ where: { id } });
+  async update(id: number, updateProductDto: UpdateProductDto, image?: Express.Multer.File) {
+    const product = await this.productRepository.findOne({ where: { id } });
+
     if (!product) {
-      throw new NotFoundException('Продукт не найден');
+      throw new NotFoundException(`Продукт с ID ${id} не найден`);
     }
 
-    await this.productsRepository.remove(product);
+    if (image) {
+      const uploadResult = await this.uploadsService.uploadFile(image);
+      product.imageUrl = uploadResult.path;
+    }
+
+    Object.assign(product, updateProductDto);
+
+    return this.productRepository.save(product);
   }
 
-  private async uploadImageToS3(file: Express.Multer.File): Promise<string> {
-    const params: AWS.S3.PutObjectRequest = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME || 'your-default-bucket-name',
-      Key: `${Date.now()}-${file.originalname}`,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-      ACL: 'public-read',
-    };
+  async delete(id: number) {
+    const product = await this.productRepository.findOne({ where: { id } });
 
-    const { Location } = await this.s3.upload(params).promise();
-    return Location;
+    if (!product) {
+      throw new NotFoundException(`Продукт с ID ${id} не найден`);
+    }
+
+    return this.productRepository.remove(product);
   }
 }

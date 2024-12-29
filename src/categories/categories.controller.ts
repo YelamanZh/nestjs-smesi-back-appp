@@ -4,55 +4,53 @@ import {
   Post,
   Patch,
   Delete,
-  Param,
   Body,
+  Param,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { CategoriesService } from './providers/categories.service';
+import { CategoriesService } from 'src/categories/providers/categories.service';
 import { CreateCategoryDto } from './dtos/create-category.dto';
-import { UpdateCategoryDto } from './dtos/update-categoty.dto';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { userRole } from 'src/users/enums/userRole.enum';
+import { UpdateCategoryDto } from './dtos/update-category.dto';
+import { AccessTokenGuard } from 'src/auth/guards/access-token/access-token.guard';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Public } from 'src/auth/decorators/public.decorator';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('Категории')
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @ApiOperation({ summary: 'Получить все категории (доступно всем)' })
-  @ApiResponse({ status: 200, description: 'Список категорий' })
-  @Public()
+  @ApiOperation({ summary: 'Получить все категории' })
   @Get()
-  getAllCategories() {
-    return this.categoriesService.findAll();
+  async getAllCategories() {
+    return this.categoriesService.getAllCategories();
   }
 
-  @ApiOperation({ summary: 'Создать категорию (только админ)' })
-  @ApiResponse({ status: 201, description: 'Категория успешно создана' })
-  @Roles(userRole.ADMIN)
+  @ApiOperation({ summary: 'Создать категорию' })
+  @Public()
+  @UseGuards(AccessTokenGuard)
   @Post()
-  createCategory(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  async createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.createCategory(createCategoryDto);
   }
 
-  @ApiOperation({ summary: 'Обновить категорию (только админ)' })
-  @ApiResponse({ status: 200, description: 'Категория успешно обновлена' })
-  @Roles(userRole.ADMIN)
+  @ApiOperation({ summary: 'Обновить категорию' })
+  @Public()
+  @UseGuards(AccessTokenGuard)
   @Patch(':id')
-  updateCategory(
+  async updateCategory(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(id, updateCategoryDto);
+    return this.categoriesService.updateCategory(id, updateCategoryDto);
   }
 
-  @ApiOperation({ summary: 'Удалить категорию (только админ)' })
-  @ApiResponse({ status: 200, description: 'Категория успешно удалена' })
-  @Roles(userRole.ADMIN)
+  @ApiOperation({ summary: 'Удалить категорию' })
+  @ApiBearerAuth('JWT')
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  deleteCategory(@Param('id', ParseIntPipe) id: number) {
-    return this.categoriesService.remove(id);
+  async deleteCategory(@Param('id', ParseIntPipe) id: number) {
+    return this.categoriesService.deleteCategory(id);
   }
 }

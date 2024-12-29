@@ -1,36 +1,35 @@
-import { Global, Module } from '@nestjs/common';
-import { MailService } from './providers/mail.service';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
-import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'; // Для Handlebars
+import { MailService } from 'src/mail/providers/mail.service';
+import * as path from 'path';
 
-@Global()
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      useFactory: async (config: ConfigService) => ({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
         transport: {
-          host: config.get<string>('appConfig.mailHost'),
-          port: 587,
-          secure: false,
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
           auth: {
-            user: config.get('appConfig.smtpUsername'),
-            pass: config.get('appConfig.smtpPassword'),
+            user: configService.get<string>('SMTP_USERNAME'),
+            pass: configService.get<string>('SMTP_PASSWORD'),
           },
         },
         defaults: {
-          from: `Строим и Месим <no-repy@nestjs-blog.com>`,
+          from: configService.get<string>('MAIL_FROM'),
         },
         template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new EjsAdapter(),
+          dir: path.join(__dirname, 'templates'), // Убедитесь, что папка `templates` существует
+          adapter: new HandlebarsAdapter(), // Используйте правильный адаптер
           options: {
-            strict: false,
+            strict: true,
           },
         },
       }),
-      inject: [ConfigService],
     }),
   ],
   providers: [MailService],

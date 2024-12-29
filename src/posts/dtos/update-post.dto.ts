@@ -1,24 +1,32 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePostDto } from './create-post.dto';
+import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
 
-export class UpdatePostDto extends PartialType(CreatePostDto) {
-  @ApiProperty({ description: 'Название поста', example: 'Новости компании' })
-  @IsNotEmpty()
+export class UpdatePostDto {
+  @ApiProperty({ description: 'Заголовок новости', required: false })
+  @IsOptional()
   @IsString()
-  title: string; // Название поста
+  title?: string;
 
-  @ApiProperty({ description: 'Контент поста', example: 'Содержание поста.' })
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Содержание новости', required: false })
+  @IsOptional()
   @IsString()
-  content: string; // Контент поста
+  content?: string;
 
   @ApiProperty({
-    description: 'Массив ссылок на изображения',
-    example: ['image1.jpg', 'image2.jpg'],
+    description: 'Изображения новости',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+    required: false,
   })
   @IsOptional()
-  @IsArray()
-  images?: string[]; // Ссылки на изображения
+  images?: any[];
+
+  @ApiProperty({
+    description: 'Превью-изображение',
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  @IsOptional()
+  previewImage?: any;
 }

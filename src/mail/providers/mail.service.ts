@@ -1,31 +1,43 @@
-import { MailerModule, MailerService } from "@nestjs-modules/mailer";
-import { EjsAdapter } from "@nestjs-modules/mailer/dist/adapters/ejs.adapter";
-import { Global, Injectable, Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { join } from "path";
+import { Injectable } from '@nestjs/common';
+import { MailerService } from '@nestjs-modules/mailer';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendUserWelcome(user: { email: string; name: string }): Promise<void> {
-    try {
-      await this.mailerService.sendMail({
-        to: user.email, // Recipient's email
-        subject: 'Welcome to My Blog!',
-        template: './welcome', // Name of the template file (e.g., `welcome.ejs`)
-        context: {
-          name: user.name, // Variables to pass to the template
-        },
-      });
-      console.log(`Welcome email sent to ${user.email}`);
-    } catch (error) {
-    if (error instanceof Error) {
-       console.error(`Failed to send welcome email: ${error.message}`);
-          } else {
-       console.error('Failed to send welcome email: Unknown error occurred');
-    }
+  async sendWelcomeEmail(user: User) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Добро пожаловать в Строим и Месим!',
+      template: './welcome', // Путь к шаблону EJS
+      context: {
+        name: user.firstName,
+      },
+    });
+  }
 
-    }
+  async sendProductUpdateNotification(user: User, productName: string) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: `Новый продукт добавлен: ${productName}`,
+      template: './product-notification',
+      context: {
+        name: user.firstName,
+        productName,
+      },
+    });
+  }
+
+  async sendNewsUpdateNotification(user: User, newsTitle: string) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: `Новая новость: ${newsTitle}`,
+      template: './news-notification',
+      context: {
+        name: user.firstName,
+        newsTitle,
+      },
+    });
   }
 }

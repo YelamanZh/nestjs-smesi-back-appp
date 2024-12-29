@@ -11,44 +11,37 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Upload } from '../uploads.entity';
 import { Repository } from 'typeorm';
 import { Express } from 'express';
+import * as AWS from 'aws-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UploadsService {
-  constructor(
-    /**
-     * Inject uploadToAwsProvider
-     */
-    private readonly uploadToAwsProvider: UploadToAwsProvider,
-    /**
-     * inject configService
-     */
-    private readonly configService: ConfigService,
-    /**
-     * inject uploadsRepository
-     */
-    @InjectRepository(Upload)
-    private uploadsRepository: Repository<Upload>,
-  ) {}
-  
-  public async uploadFile(file: Express.Multer.File) {
-    if (
-      !['image/gif', 'image/jpeg', 'image/jpg', 'image/png'].includes(file.mimetype)
-    ) {
-      throw new BadRequestException('MIME type not supported');
-    }
-    try {
-      const path = await this.uploadToAwsProvider.fileUpload(file);
-      const uploadFile: UploadFile = {
-        name: path,
-        path: `https://${this.configService.get<string>('appConfig.awsCloudfrontUrl')}/${path}`,
-        type: fileTypes.IMAGE,
-        mime: file.mimetype,
-        size: file.size,
-      };
-      const upload = this.uploadsRepository.create(uploadFile);
-      return await this.uploadsRepository.save(upload);
-    } catch (error) {
-      throw new ConflictException('Failed to upload file', { cause: error });
-    }
-  }  
+  private s3: AWS.S3;
+  private cloudFrontUrl: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.s3 = new AWS.S3({
+      region: this.configService.get<string>('AWS_REGION'),
+      accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+    });
+
+    this.cloudFrontUrl = this.configService.get<string>('AWS_CLOUDFRONT_URL');
+  }
+
+  async uploadFile(file: Express.Multer.File): Promise<{ path: string }> {
+    const fileKey = `${uuidv4()}-${file.originalname}`;
+    const params: AWS.S3.PutObjectRequest = {
+      Bucket: this.configService.get<string>('AWS_PUBLIC_BUCKET_NAME'),
+      Key: fileKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    await this.s3.upload(params).promise();
+
+    return {
+      path: `${this.cloudFrontUrl}/${fileKey}`,
+    };
+  }
 }

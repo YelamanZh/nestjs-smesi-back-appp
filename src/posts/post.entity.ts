@@ -18,11 +18,14 @@ export class Post {
   @Column({ type: 'text', nullable: false })
   content: string; // Содержимое поста
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt: Date; // Дата добавления поста
+  @Column({ type: 'varchar', length: 1024, nullable: true })
+  previewImage?: string; // Ссылка на превью-картинку (опционально)
 
   @Column({ type: 'jsonb', nullable: true })
-  images: string[]; // Ссылки на изображения (один или несколько)
+  images?: string[]; // Ссылки на изображения внутри контента (опционально)
+
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date; // Дата добавления поста
 
   @OneToMany(() => Comment, (comment) => comment.post, { cascade: true })
   comments: Comment[]; // Комментарии, оставленные пользователями

@@ -6,15 +6,21 @@ import { Product } from 'src/categories/product.entity';
 import { CategoriesModule } from '../categories/categories.module';
 import { CatalogModule } from '../catalogs/catalogs.module';
 import { Category } from 'src/categories/category.entity'
+import { UploadsModule } from 'src/uploads/uploads.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, Category]),
+    UploadsModule,
     forwardRef(() => CategoriesModule),
     forwardRef(() => CatalogModule),
+    forwardRef(() => AuthModule),
+    JwtModule.register({}),    
   ],
   providers: [ProductsService],
   controllers: [ProductsController],
-  exports: [ProductsService],
+  exports: [TypeOrmModule, ProductsService],
 })
 export class ProductsModule {}

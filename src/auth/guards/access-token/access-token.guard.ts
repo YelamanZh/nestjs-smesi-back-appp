@@ -16,7 +16,7 @@ import { ROLES_KEY } from 'src/auth/decorators/roles.decorator';
 import { userRole } from 'src/users/enums/userRole.enum';
 
 interface CustomRequest extends Request {
-  user?: any;
+  user?: { id: number; role: userRole; [key: string]: any };
 }
 
 @Injectable()
@@ -47,6 +47,8 @@ export class AccessTokenGuard implements CanActivate {
         audience: this.jwtConfiguration.audience,
         issuer: this.jwtConfiguration.issuer,
       });
+
+      console.log('JWT Payload:', payload);
       request[REQUEST_USER_KEY] = payload;
 
       const requiredRoles = this.reflector.get<userRole[]>(ROLES_KEY, context.getHandler());
@@ -55,13 +57,15 @@ export class AccessTokenGuard implements CanActivate {
       }
 
       return true;
-    } catch (err) {
+    } catch (error) {
+      console.error('Token Verification Failed:', error.message);
       throw new UnauthorizedException('Неверный токен.');
     }
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
     const [_, token] = request.headers.authorization?.split(' ') ?? [];
+    console.log('Extracted Token:', token);
     return token;
   }
 }

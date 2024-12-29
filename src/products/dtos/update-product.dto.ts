@@ -1,85 +1,44 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { ApiBody, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsString,
-  IsBoolean,
-  IsEnum,
-  IsDecimal,
-  IsObject,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
-import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
-import { ProductStatus } from 'src/categories/product.entity';
+import { IsObject, IsString, IsNumber, IsOptional, IsEnum } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { ProductStatus } from 'src/categories/enums/productStatus.enum';
 
-export class UpdateProductDto extends PartialType(CreateProductDto) {
-  @ApiPropertyOptional({ description: 'Название продукта', example: 'Цемент' })
-  @IsOptional()
+export class UpdateProductDto {
+  @ApiProperty({ description: 'Название продукта' })
   @IsString()
-  name?: string;
+  name: string;
 
-  @ApiPropertyOptional({ description: 'Описание продукта', example: 'Качественный цемент' })
+  @ApiProperty({ description: 'Описание продукта', required: false })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Есть ли в наличии', example: true })
-  @IsOptional()
-  @IsBoolean()
-  inStock?: boolean;
+  @ApiProperty({ description: 'ID категории' })
+  @IsNumber()
+  categoryId: number;
 
-  @ApiPropertyOptional({
+  @ApiProperty({ description: 'Цена продукта' })
+  @IsNumber()
+  price: number;
+
+  @ApiProperty({
     description: 'Статус продукта',
-    example: 'новинка',
     enum: ProductStatus,
+    default: ProductStatus.REGULAR,
   })
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
 
-  @ApiPropertyOptional({ description: 'Цена продукта', example: 1500.5 })
   @IsOptional()
-  @IsNumber()
-  price?: number;
+  @IsObject()
+  specifications?: Record<string, any>;
 
-  @ApiPropertyOptional({
-  description: 'Характеристики продукта (JSON-объект)',
-  example: {
-    color: 'белый',
-    waterproof: true,
-    maxGrainSize: '2.5 мм',
-    mixingRatio: '1:3',
-    materialConsumption: '10 кг/м²',
-    mobilityClass: 'М100',
-    applicationTemperature: 'от +5 до +35',
-    solutionViability: '2 часа',
-    materialClass: 'Класс 1',
-    effectiveActivity: '50 Бк/кг',
-    adhesionStrength: '1.2 МПа',
-    compressiveStrength: '30 МПа',
-    strengthGrade: 'М300',
-    dryingTime: '24 часа',
-    frostResistance: '50 циклов',
-  },
-  type: 'object',
-  additionalProperties: true, // Указание, что объект может иметь дополнительные свойства
-})
-@IsOptional()
-@IsObject()
-specifications?: Record<string, any>;
-
-
-  @ApiPropertyOptional({ description: 'ID категории', example: 1 })
-  @IsOptional()
-  @IsNumber()
-  categoryId?: number;
-
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Изображение продукта',
     type: 'string',
     format: 'binary',
+    required: false,
   })
   @IsOptional()
-  file?: any;
+  image?: string;
 }

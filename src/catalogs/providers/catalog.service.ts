@@ -7,7 +7,7 @@ import { Product } from 'src/categories/product.entity';
 import { CreateCategoryDto } from 'src/categories/dtos/create-category.dto';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
 import { UpdateProductDto } from 'src/products/dtos/update-product.dto';
-import { UpdateCategoryDto } from 'src/categories/dtos/update-categoty.dto';
+import { UpdateCategoryDto } from 'src/categories/dtos/update-category.dto';
 import * as AWS from 'aws-sdk';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';

@@ -14,14 +14,12 @@ export class UploadToAwsProvider {
   public async fileUpload(file: Express.Multer.File): Promise<string> {
     const key = `${uuidv4()}-${file.originalname}`;
 
-    await this.s3
-      .upload({
-        Bucket: process.env.AWS_BUCKET_NAME!,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      })
-      .promise();
+    await this.s3.upload({
+      Bucket: process.env.AWS_PUBLIC_BUCKET_NAME!,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    }).promise();
 
     return key;
   }

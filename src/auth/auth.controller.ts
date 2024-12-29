@@ -1,4 +1,3 @@
-// src/auth/auth.controller.ts
 import {
   Body,
   Controller,
@@ -21,7 +20,20 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Войти в систему (Sign-In)' })
-  @ApiResponse({ status: 200, description: 'Успешный вход' })
+  @ApiResponse({
+    status: 200,
+    description: 'Успешный вход',
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Неверные учетные данные',
+  })
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
   public async signIn(@Body() signInDto: SignInDto) {
@@ -29,7 +41,16 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Обновить токен (Refresh Tokens)' })
-  @ApiResponse({ status: 200, description: 'Токены успешно обновлены' })
+  @ApiResponse({
+    status: 200,
+    description: 'Токены успешно обновлены',
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
   @Post('refresh-tokens')
   @HttpCode(HttpStatus.OK)
   public async refreshTokens(@Body() refreshTokensDto: RefreshTokenDto) {

@@ -1,34 +1,63 @@
-// src/auth/providers/auth.service.ts
-import { Injectable } from '@nestjs/common';
-import { SignInProvider } from './sign-in.provider';
-import { RefreshTokensProvider } from './refresh-tokens.provider';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/providers/users.service';
 import { SignInDto } from '../dtos/signin.dto';
 import { RefreshTokenDto } from '../dtos/refresh-token.dto';
 import { ActiveUserData } from '../inteface/active-user-data.interface';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly signInProvider: SignInProvider,
-    private readonly refreshTokensProvider: RefreshTokensProvider,
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
-  @ApiOperation({ summary: 'Войти в систему' })
+  /**
+   * Вход в систему (Sign-In)
+   */
   public async signIn(signInDto: SignInDto) {
-    return this.signInProvider.signIn(signInDto);
+    const user = await this.usersService.validateUserCredentials(
+      signInDto.email,
+      signInDto.password,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('Неверные учетные данные');
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
   }
 
-  @ApiOperation({ summary: 'Обновить токены' })
+  /**
+   * Обновление токенов (Refresh Tokens)
+   */
   public async refreshTokens(refreshTokenDto: RefreshTokenDto) {
-    return this.refreshTokensProvider.refreshTokens(refreshTokenDto);
+    try {
+      const payload = this.jwtService.verify(refreshTokenDto.refreshToken);
+      const user = await this.usersService.findOneById(payload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('Пользователь не найден');
+      }
+
+      const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (err) {
+      throw new UnauthorizedException('Неверный refresh token');
+    }
   }
 
-  @ApiOperation({ summary: 'Выйти из системы' })
-  @ApiResponse({ status: 200, description: 'Выход успешно выполнен' })
+  /**
+   * Выход из системы (Logout)
+   */
   public async logout(user: ActiveUserData) {
-    // Здесь вы можете добавить логику добавления токена в черный список
-    // или обновления записи в базе, если вы используете Refresh Tokens.
+    // Здесь можно добавить логику работы с черным списком токенов, если требуется
     return {
       message: `Пользователь с ID ${user.sub} успешно вышел из системы`,
     };

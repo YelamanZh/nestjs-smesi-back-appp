@@ -16,10 +16,9 @@ import { userRole } from 'src/users/enums/userRole.enum';
 import { CatalogService } from './providers/catalog.service';
 import { CreateCategoryDto } from 'src/categories/dtos/create-category.dto';
 import { CreateProductDto } from 'src/categories/dtos/create-product.dto';
-import { UpdateCategoryDto } from 'src/categories/dtos/update-categoty.dto';
+import { UpdateCategoryDto } from 'src/categories/dtos/update-category.dto';
 import { UpdateProductDto } from 'src/products/dtos/update-product.dto';
 
-@ApiTags('Каталог')
 @Controller('catalog')
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}

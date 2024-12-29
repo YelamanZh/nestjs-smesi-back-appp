@@ -1,18 +1,17 @@
 import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
   Inject,
+  BadRequestException,
   Injectable,
   NotFoundException,
   RequestTimeoutException,
 } from '@nestjs/common';
-import { GetUsersParamDto } from '../dtos/get-users-param.dto';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { User } from '../user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from '../dtos/create-user.dto';
-import { ConfigService, ConfigType } from '@nestjs/config';
+import { GetUsersParamDto } from '../dtos/get-users-param.dto';
+import { PatchUserDto } from '../dtos/patch-user.dto';
+import { ConfigType } from '@nestjs/config';
 import profileConfig from '../config/profile.config';
 import { UsersCreateManyProvider } from './users-create-many.provider';
 import { CreateUserProvider } from './create-user.provider';
@@ -20,146 +19,127 @@ import { FindOneUserByEmailProvider } from './find-one-user-by-email.provider';
 import { FindOneByGoogleIdProvider } from './find-one-by-google-id.provider';
 import { CreateGoogleUserProvider } from './create-google-user.provider';
 import { GoogleUser } from '../interfaces/google-user.interface';
-import { PatchUserDto } from '../dtos/patch-user.dto';
+import * as bcrypt from 'bcrypt';
 
-/**
- * Controller class for '/users' API endpoint
- */
 @Injectable()
 export class UsersService {
   constructor(
-    /*
-     * Injecting user Repository
-     */
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-
     @Inject(profileConfig.KEY)
     private readonly profileConfiguration: ConfigType<typeof profileConfig>,
-
-    /**
-     * Inject UsersCreateMany provider
-     */
     private readonly usersCreateManyProvider: UsersCreateManyProvider,
-
-    /**
-     * Inject Datasource
-     */
     private readonly dataSource: DataSource,
-
-    /**
-     * Inject createUserProvider
-     */
     private readonly createUserProvider: CreateUserProvider,
-
-    /**
-     * Inject findOneUserByEmailProvider
-     */
     private readonly findOneUserByEmailProvider: FindOneUserByEmailProvider,
-
-    /**
-     * Inject findOneByGoogleIdProvier
-     */
     private readonly findOneByGoogleIdProvider: FindOneByGoogleIdProvider,
-
-    /**
-     * Inject createGoogleUserProvider
-     */
     private readonly createGoogleUserProvider: CreateGoogleUserProvider,
   ) {}
 
-  public async createUser(createUserDto: CreateUserDto) {
+  public async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    createUserDto.password = hashedPassword;
     return this.createUserProvider.createUser(createUserDto);
   }
 
-  /**
-   * Public method responsible for handling GET request for '/users' endpoint
-   */
-  
-
-public async findAll(
-  getUseresParamDto: GetUsersParamDto,
-  limit: number,
-  page: number,
-) {
-  try {
-    // Используем findAndCount для получения данных и общего количества записей
-    const [users, total] = await this.usersRepository.findAndCount({
-      take: limit, // Количество записей на одной странице
-      skip: (page - 1) * limit, // Пропускаем записи на основе текущей страницы
-      where: getUseresParamDto, // Фильтры из DTO, если они заданы
-    });
-
-    return {
-      data: users,
-      total, // Общее количество записей
-      limit, // Лимит записей на странице
-      page,  // Текущая страница
-    };
-  } catch (error) {
-    // Обработка ошибок при выполнении запроса
-    throw new RequestTimeoutException(
-      'Unable to fetch users at the moment. Please try again later.',
-    );
-  }
-}
-
-  /**
-   * Public method used to find one user using the ID of the user
-   */
-
-  public async findOneById(id: number) {
-    let user = undefined;
-
+  public async findAll(
+    getUsersParamDto: GetUsersParamDto,
+    limit: number,
+    page: number,
+  ) {
     try {
-      user = await this.usersRepository.findOneBy({
-        id,
+      const [users, total] = await this.usersRepository.findAndCount({
+        take: limit,
+        skip: (page - 1) * limit,
+        where: getUsersParamDto,
       });
+
+      return {
+        data: users,
+        total,
+        limit,
+        page,
+      };
     } catch (error) {
       throw new RequestTimeoutException(
-        'Unable to process your request at the moment please try later',
-        {
-          description: 'Error connecting to the the datbase',
-        },
+        'Unable to fetch users at the moment. Please try again later.',
       );
     }
+  }
 
-    /**
-     * Handle the user does not exist
-     */
+  public async findOneById(id: number): Promise<User> {
+    let user: User;
+
+    try {
+      user = await this.usersRepository.findOneBy({ id });
+    } catch (error) {
+      throw new RequestTimeoutException('Database connection error');
+    }
+
     if (!user) {
-      throw new BadRequestException('The user id does not exist');
+      throw new BadRequestException('User ID does not exist');
     }
 
     return user;
   }
 
-  public async createMany(createUsersDto: CreateUserDto[]) {
+  public async createMany(createUsersDto: CreateUserDto[]): Promise<User[]> {
     return await this.usersCreateManyProvider.createMany(createUsersDto);
   }
 
-  public async findOneByEmail(email: string) {
+  public async findOneByEmail(email: string): Promise<User> {
     return await this.findOneUserByEmailProvider.findOneByEmail(email);
   }
 
-  public async findOneByGoogleId(googleId: string) {
+  public async findOneByGoogleId(googleId: string): Promise<User> {
     return await this.findOneByGoogleIdProvider.findOneByGoogleId(googleId);
   }
 
-
-  public async createGoogleUser(googleUser: GoogleUser){
+  public async createGoogleUser(googleUser: GoogleUser): Promise<User> {
     return await this.createGoogleUserProvider.createGoogleUser(googleUser);
   }
 
-  async updateUser(patchUserDto: PatchUserDto): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id: patchUserDto.id } });
+  public async updateUser(patchUserDto: PatchUserDto): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id: patchUserDto.id },
+    });
 
     if (!user) {
-      throw new NotFoundException('Пользователь не найден');
+      throw new NotFoundException('User not found');
     }
 
     Object.assign(user, patchUserDto);
-
     return this.usersRepository.save(user);
+  }
+
+  public async validateUserCredentials(
+    email: string,
+    password: string,
+  ): Promise<User | null> {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const isPasswordValid = await this.validatePassword(
+      password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
+  }
+
+  private async validatePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(password, hashedPassword);
   }
 }

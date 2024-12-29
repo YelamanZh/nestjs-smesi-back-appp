@@ -1,17 +1,9 @@
-import { IsNotEmpty, IsString, MaxLength, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCommentDto {
-  @IsString()
+  @ApiProperty({ description: 'Текст комментария' })
   @IsNotEmpty()
-  @MaxLength(500)
-  content: string; // Текст комментария
-
-  @IsOptional()
-  productId?: number; // ID продукта (если комментарий к продукту)
-
-  @IsOptional()
-  postId?: number; // ID поста (если комментарий к посту)
-
-  @IsOptional()
-  parentCommentId?: number; // ID родительского комментария (для вложенных комментариев)
+  @IsString()
+  content: string;
 }

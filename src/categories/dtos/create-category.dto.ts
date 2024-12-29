@@ -1,8 +1,13 @@
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCategoryDto {
+  @ApiProperty({ description: 'Название категории' })
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(96)
-  name: string; // Название категории
+  name: string;
+
+  @ApiProperty({ description: 'Описание категории', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

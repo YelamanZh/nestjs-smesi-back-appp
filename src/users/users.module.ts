@@ -24,11 +24,14 @@ import { MailModule } from '../mail/mail.module';
     CreateGoogleUserProvider,
   ],
   imports: [
-    forwardRef(() => AuthModule),
-    TypeOrmModule.forFeature([User]),
+    forwardRef(() => AuthModule), // Resolve circular dependency
+    TypeOrmModule.forFeature([User]), // Register only entities
     ConfigModule.forFeature(profileConfig),
-    MailModule, // Добавьте это
+    MailModule, // Ensure MailModule is imported
   ],
-  exports: [UsersService],
+  exports: [
+    UsersService, // Export UsersService for use in AuthModule
+    TypeOrmModule,
+  ],
 })
 export class UsersModule {}

@@ -1,22 +1,33 @@
+import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
 
 export class CreatePostDto {
-  @ApiProperty({ description: 'Название поста', example: 'Новости компании' })
+  @ApiProperty({ description: 'Заголовок новости' })
   @IsNotEmpty()
   @IsString()
-  title: string; // Название поста
+  title: string;
 
-  @ApiProperty({ description: 'Контент поста', example: 'Содержание поста.' })
+  @ApiProperty({ description: 'Содержание новости' })
   @IsNotEmpty()
   @IsString()
-  content: string; // Контент поста
+  content: string;
 
   @ApiProperty({
-    description: 'Массив ссылок на изображения',
-    example: ['image1.jpg', 'image2.jpg'],
+    description: 'Изображения новости',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+    required: false,
   })
   @IsOptional()
   @IsArray()
-  images?: string[]; // Ссылки на изображения
+  images?: string[];
+
+  @ApiProperty({
+    description: 'Превью-изображение',
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  @IsOptional()
+  previewImage?: string;
 }

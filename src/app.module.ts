@@ -12,12 +12,18 @@ import { Category } from 'src/categories/category.entity';
 import { Post } from 'src/posts/post.entity';
 import { CartItem } from 'src/cart/cart.entity'; // Add this import
 import { Upload } from 'src/uploads/uploads.entity'; // Add this import
+import { CartModule } from './cart/cart.module';
+import jwtConfig from 'src/auth/config/jwt.config';
+import { PostsModule } from 'src/posts/posts.module';
+import { CommentsModule } from './comments/comments.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      load: [jwtConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -36,8 +42,12 @@ import { Upload } from 'src/uploads/uploads.entity'; // Add this import
       }),
     }),
     CategoriesModule,
+    CartModule,
+    PostsModule,
     ProductsModule,
     CatalogModule,
+    MailModule,
+    CommentsModule,
     forwardRef(() => AuthModule), // Используем forwardRef
   ],
 })

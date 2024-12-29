@@ -6,15 +6,17 @@ import { Category } from './category.entity';
 import { Product } from './product.entity';
 import { ProductsModule } from 'src/products/products.module';
 import { CatalogModule } from 'src/catalogs/catalogs.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Category, Product]),
     forwardRef(() => ProductsModule), // Correct forwardRef usage
     forwardRef(() => CatalogModule),
+    forwardRef(() => AuthModule),
   ],
   providers: [CategoriesService],
   controllers: [CategoriesController],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, CategoriesService],
 })
 export class CategoriesModule {}

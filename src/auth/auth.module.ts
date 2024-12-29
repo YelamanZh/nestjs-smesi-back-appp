@@ -13,46 +13,40 @@ import { GenerateTokensProvider } from './providers/generate-tokens.provider';
 import { RefreshTokensProvider } from './providers/refresh-tokens.provider';
 import { GoogleAuthenticationController } from './social/google-authentication.controller';
 import { GoogleAuthenticationService } from './social/providers/google-authentication.service';
-import { CategoriesModule } from 'src/categories/categories.module';
-import { ProductsModule } from 'src/products/products.module';
 
 @Module({
-  controllers: [AuthController, GoogleAuthenticationController],
   imports: [
     ConfigModule.forFeature(jwtConfig),
-    forwardRef(() => UsersModule),
-    forwardRef(() => CategoriesModule),
-    forwardRef(() => ProductsModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: `${configService.get<number>('JWT_ACCESS_TOKEN_TTL')}s`,
-          audience: configService.get<string>('JWT_TOKEN_AUDIENCE'),
-          issuer: configService.get<string>('JWT_TOKEN_ISSUER'),
-        },
+        signOptions: { expiresIn: '1h' },
+        audience: configService.get<string>('JWT_TOKEN_AUDIENCE'),
+        issuer: configService.get<string>('JWT_TOKEN_ISSUER'),
       }),
     }),
+    forwardRef(() => UsersModule),
   ],
+  controllers: [AuthController, GoogleAuthenticationController],
   providers: [
-    AuthService,
+    AuthService, // Добавлено в массив провайдеров
+    JwtModule,
+    AccessTokenGuard,
+    SignInProvider,
+    RefreshTokensProvider,
+    GenerateTokensProvider,
+    GoogleAuthenticationService,
     {
       provide: HashingProvider,
       useClass: BcryptProvider,
     },
-    SignInProvider,
-    AccessTokenGuard,
-    GenerateTokensProvider,
-    RefreshTokensProvider,
-    GoogleAuthenticationService,
   ],
   exports: [
-    AuthService,
-    HashingProvider,
-    AccessTokenGuard,
+    AuthService, // Экспортируем AuthService, если он нужен в других модулях
     JwtModule,
+    AccessTokenGuard,
   ],
 })
 export class AuthModule {}
